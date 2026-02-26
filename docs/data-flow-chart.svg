@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000" height="700">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="500" y="25" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold">MicroPulse Data Flow - Setup to Dashboard</text>
+  
+  <!-- ============== SETUP PAGE ============== -->
+  <rect x="50" y="50" width="250" height="200" rx="5" fill="#e0f2fe" stroke="#333" stroke-width="2"/>
+  <text x="175" y="70" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold">SETUP PAGE</text>
+  
+  <rect x="60" y="85" width="100" height="30" rx="3" fill="#fff" stroke="#333"/>
+  <text x="110" y="105" text-anchor="middle" font-family="Arial" font-size="10">State (Dropdown)</text>
+  
+  <rect x="170" y="85" width="100" height="30" rx="3" fill="#fff" stroke="#333"/>
+  <text x="220" y="105" text-anchor="middle" font-family="Arial" font-size="10">City (Cascading)</text>
+  
+  <rect x="60" y="125" width="100" height="30" rx="3" fill="#fff" stroke="#333"/>
+  <text x="110" y="145" text-anchor="middle" font-family="Arial" font-size="10">PIN Codes</text>
+  
+  <rect x="170" y="125" width="100" height="30" rx="3" fill="#fff" stroke="#333"/>
+  <text x="220" y="145" text-anchor="middle" font-family="Arial" font-size="10">CSV Upload</text>
+  
+  <rect x="60" y="165" width="100" height="30" rx="3" fill="#fff" stroke="#333"/>
+  <text x="110" y="185" text-anchor="middle" font-family="Arial" font-size="10">Shopify</text>
+  
+  <rect x="170" y="165" width="100" height="30" rx="3" fill="#fff" stroke="#333"/>
+  <text x="220" y="185" text-anchor="middle" font-family="Arial" font-size="10">WooCommerce</text>
+  
+  <!-- Process Box -->
+  <rect x="100" y="265" width="150" height="40" rx="3" fill="#c7d2fe" stroke="#333" stroke-width="2"/>
+  <text x="175" y="290" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold">Click "Setup"</text>
+  
+  <!-- Arrow -->
+  <line x1="175" y1="305" x2="175" y2="330" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  
+  <!-- ============== DATA PROCESSING ============== -->
+  <rect x="50" y="340" width="250" height="80" rx="5" fill="#ddd6fe" stroke="#333" stroke-width="2"/>
+  <text x="175" y="360" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold">DATA PROCESSING</text>
+  <text x="175" y="380" text-anchor="middle" font-family="Arial" font-size="9">1. Parse CSV File</text>
+  <text x="175" y="395" text-anchor="middle" font-family="Arial" font-size="9">2. Validate PIN Codes</text>
+  <text x="175" y="410" text-anchor="middle" font-family="Arial" font-size="9">3. Store in React State</text>
+  
+  <!-- Arrow -->
+  <line x1="175" y1="420" x2="175" y2="445" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  
+  <!-- ============== SETUP RESULTS ============== -->
+  <rect x="50" y="455" width="250" height="100" rx="5" fill="#bbf7d0" stroke="#333" stroke-width="2"/>
+  <text x="175" y="475" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold">SETUP RESULTS</text>
+  <text x="175" y="495" text-anchor="middle" font-family="Arial" font-size="9">PIN Codes Card (tags display)</text>
+  <text x="175" y="510" text-anchor="middle" font-family="Arial" font-size="9">SKU Data Table (from CSV)</text>
+  <text x="175" y="525" text-anchor="middle" font-family="Arial" font-size="9">Edit Button (back to form)</text>
+  
+  <!-- ============== ARROW TO DASHBOARD ============== -->
+  <line x1="300" y1="505" x2="400" y2="505" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="350" y="495" text-anchor="middle" font-family="Arial" font-size="9">Navigate to</text>
+  <text x="350" y="525" text-anchor="middle" font-family="Arial" font-size="9">Dashboard</text>
+  
+  <!-- ============== DASHBOARD ============== -->
+  <rect x="410" y="50" width="560" height="510" rx="5" fill="#fed7aa" stroke="#333" stroke-width="2"/>
+  <text x="690" y="70" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold">DASHBOARD OVERVIEW</text>
+  
+  <!-- Row 1 -->
+  <rect x="425" y="90" width="120" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="485" y="110" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Stats Cards</text>
+  <text x="485" y="125" text-anchor="middle" font-family="Arial" font-size="8">SKUs, PIN Codes</text>
+  
+  <rect x="560" y="90" width="120" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="620" y="110" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Demand Map</text>
+  <text x="620" y="125" text-anchor="middle" font-family="Arial" font-size="8">Leaflet + Hotspots</text>
+  
+  <rect x="695" y="90" width="120" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="755" y="110" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Weather Impact</text>
+  <text x="755" y="125" text-anchor="middle" font-family="Arial" font-size="8">Temp, Rain, Humidity</text>
+  
+  <rect x="830" y="90" width="120" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="890" y="110" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Quick Actions</text>
+  <text x="890" y="125" text-anchor="middle" font-family="Arial" font-size="8">Buttons</text>
+  
+  <!-- Row 2 -->
+  <rect x="425" y="155" width="250" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="550" y="175" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Upcoming Festivals</text>
+  <text x="550" y="190" text-anchor="middle" font-family="Arial" font-size="8">Holi, Ramzan, Gudi Padwa</text>
+  
+  <rect x="695" y="155" width="255" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="822" y="175" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Recent Alerts</text>
+  <text x="822" y="190" text-anchor="middle" font-family="Arial" font-size="8">Stockout, Demand Spike, Weather</text>
+  
+  <!-- Row 3 -->
+  <rect x="425" y="220" width="250" height="50" rx="3" fill="#fef9c3" stroke="#333"/>
+  <text x="550" y="240" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Forecast Data</text>
+  <text x="550" y="255" text-anchor="middle" font-family="Arial" font-size="8">Category Demand, 7-Day Trend</text>
+  
+  <rect x="695" y="220" width="255" height="50" rx="3" fill="#fef9c3" stroke="#333"/>
+  <text x="822" y="240" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">AI Processing</text>
+  <text x="822" y="255" text-anchor="middle" font-family="Arial" font-size="8">Weather + Festival + History</text>
+  
+  <!-- Row 4 -->
+  <rect x="425" y="285" width="525" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="687" y="305" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Demand Forecast - 30 Days</text>
+  <text x="687" y="320" text-anchor="middle" font-family="Arial" font-size="8">By PIN Code, Category, Weather Impact</text>
+  
+  <!-- Row 5 -->
+  <rect x="425" y="350" width="250" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="550" y="370" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">PIN Code Management</text>
+  <text x="550" y="385" text-anchor="middle" font-family="Arial" font-size="8">Add, Remove, Search PINs</text>
+  
+  <rect x="695" y="350" width="255" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="822" y="370" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">SKU Management</text>
+  <text x="822" y="385" text-anchor="middle" font-family="Arial" font-size="8">Product List from CSV/Shopify/Woo</text>
+  
+  <!-- Row 6 -->
+  <rect x="425" y="415" width="250" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="550" y="435" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Weather Data</text>
+  <text x="550" y="450" text-anchor="middle" font-family="Arial" font-size="8">Live Weather by Location</text>
+  
+  <rect x="695" y="415" width="255" height="50" rx="3" fill="#fff" stroke="#333"/>
+  <text x="822" y="435" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Alert Configuration</text>
+  <text x="822" y="450" text-anchor="middle" font-family="Arial" font-size="8">Threshold, Notifications</text>
+  
+  <!-- Row 7 -->
+  <rect x="425" y="480" width="525" height="60" rx="3" fill="#fff" stroke="#333"/>
+  <text x="687" y="500" text-anchor="middle" font-family="Arial" font-size="9" font-weight="bold">Sidebar Navigation</text>
+  <text x="687" y="515" text-anchor="middle" font-family="Arial" font-size="8">Overview | Setup | Forecasts | PIN Codes | Products | Weather | Alerts | Settings</text>
+  
+  <!-- ============== INDIA DATA ============== -->
+  <rect x="50" y="580" width="250" height="70" rx="5" fill="#f0fdf4" stroke="#333" stroke-width="1"/>
+  <text x="175" y="600" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold">INDIA DATA</text>
+  <text x="175" y="620" text-anchor="middle" font-family="Arial" font-size="9">20 Indian States</text>
+  <text x="175" y="635" text-anchor="middle" font-family="Arial" font-size="9">Major Cities with PIN Codes</text>
+  
+  <!-- ============== LEGEND ============== -->
+  <rect x="350" y="580" width="300" height="80" rx="5" fill="#fff" stroke="#333" stroke-width="1"/>
+  <text x="500" y="600" text-anchor="middle" font-family="Arial" font-size="11" font-weight="bold">LEGEND</text>
+  
+  <rect x="365" y="615" width="20" height="12" rx="2" fill="#e0f2fe" stroke="#333"/>
+  <text x="395" y="625" text-anchor="start" font-family="Arial" font-size="9">User Input</text>
+  
+  <rect x="455" y="615" width="20" height="12" rx="2" fill="#c7d2fe" stroke="#333"/>
+  <text x="485" y="625" text-anchor="start" font-family="Arial" font-size="9">Action/Process</text>
+  
+  <rect x="545" y="615" width="20" height="12" rx="2" fill="#bbf7d0" stroke="#333"/>
+  <text x="575" y="625" text-anchor="start" font-family="Arial" font-size="9">Output/Results</text>
+  
+  <rect x="365" y="635" width="20" height="12" rx="2" fill="#fed7aa" stroke="#333"/>
+  <text x="395" y="645" text-anchor="start" font-family="Arial" font-size="9">Dashboard</text>
+  
+  <rect x="475" y="635" width="20" height="12" rx="2" fill="#fef9c3" stroke="#333"/>
+  <text x="505" y="645" text-anchor="start" font-family="Arial" font-size="9">AI/Analytics</text>
+  
+  <rect x="575" y="635" width="20" height="12" rx="2" fill="#f0fdf4" stroke="#333"/>
+  <text x="605" y="645" text-anchor="start" font-family="Arial" font-size="9">Data Source</text>
+</svg>

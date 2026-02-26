@@ -1,0 +1,11 @@
+product_id,sku,product_name,product_description,product_dimensions,product_weight,product_price
+PROD001,SKU-001-AB,Amul Butter Pack,Premium quality salted butter 500g,15cm x 10cm x 5cm,500g,₹55
+PROD002,SKU-002-CD,Parle-G biscuits,Glucose biscuits family pack,20cm x 15cm x 8cm,800g,₹35
+PROD003,SKU-003-EF,Maggi Noodles 2-Minute,Instant noodles packet,12cm x 8cm x 3cm,70g,₹20
+PROD004,SKU-004-GH,Tata Salt 1kg,iodized salt packet,18cm x 12cm x 5cm,1kg,₹25
+PROD005,SKU-005-IJ,Britannia Marie Biscuits,Gold Marie biscuits packet,18cm x 12cm x 6cm,200g,₹30
+PROD006,SKU-006-KL,Dal Makhani Masala,Spices for dal makhani,10cm x 8cm x 4cm,50g,₹45
+PROD007,SKU-007-MN,Fortune Oil 1L,Refined sunflower oil,20cm x 10cm x 10cm,1L,₹180
+PROD008,SKU-008-OP,Basmati Rice 1kg,Premium basmati rice,22cm x 15cm x 8cm,1kg,₹150
+PROD009,SKU-009-QR,Red Label Tea 250g,Black tea leaves,15cm x 10cm x 6cm,250g,₹95
+PROD010,SKU-010-ST,Lux Soap 125g,Floral soap bar,8cm x 5cm x 3cm,125g,₹30
