@@ -1,0 +1,211 @@
+import { SKU, PINCode, InventoryRecord, ReadinessCheck, ColumnMapping } from '@/types';
+
+export const mockSKUs: SKU[] = [
+  {
+    id: 'SKU-001',
+    name: 'Limca 500ml',
+    category: 'beverages',
+    unit_cost_paise: 1800,
+    lead_time_days: 3,
+    status: 'active',
+    created_at: '2024-01-15T00:00:00Z',
+    updated_at: '2024-01-15T00:00:00Z',
+  },
+  {
+    id: 'SKU-002',
+    name: 'Coca Cola 300ml',
+    category: 'beverages',
+    unit_cost_paise: 2000,
+    lead_time_days: 2,
+    status: 'active',
+    created_at: '2024-01-15T00:00:00Z',
+    updated_at: '2024-01-15T00:00:00Z',
+  },
+  {
+    id: 'SKU-003',
+    name: 'Lays Classic 50g',
+    category: 'snacks',
+    unit_cost_paise: 2000,
+    lead_time_days: 5,
+    status: 'active',
+    created_at: '2024-01-16T00:00:00Z',
+    updated_at: '2024-01-16T00:00:00Z',
+  },
+  {
+    id: 'SKU-004',
+    name: 'Amul Milk 1L',
+    category: 'dairy',
+    unit_cost_paise: 6500,
+    lead_time_days: 1,
+    status: 'active',
+    created_at: '2024-01-17T00:00:00Z',
+    updated_at: '2024-01-17T00:00:00Z',
+  },
+  {
+    id: 'SKU-005',
+    name: 'Colgate Toothpaste 100g',
+    category: 'personal_care',
+    unit_cost_paise: 4500,
+    lead_time_days: 7,
+    status: 'no_history',
+    created_at: '2024-01-18T00:00:00Z',
+    updated_at: '2024-01-18T00:00:00Z',
+  },
+  {
+    id: 'SKU-006',
+    name: 'Detergent Powder 1kg',
+    category: 'household',
+    unit_cost_paise: 8500,
+    lead_time_days: 10,
+    status: 'active',
+    created_at: '2024-01-19T00:00:00Z',
+    updated_at: '2024-01-19T00:00:00Z',
+  },
+];
+
+export const mockPINCodes: PINCode[] = [
+  {
+    pin_code: '395001',
+    area_name: 'Surat — Adajan',
+    region: 'Gujarat',
+    store_count: 12,
+    status: 'active',
+  },
+  {
+    pin_code: '395002',
+    area_name: 'Surat — Varachha',
+    region: 'Gujarat',
+    store_count: 8,
+    status: 'active',
+  },
+  {
+    pin_code: '400001',
+    area_name: 'Mumbai — Fort',
+    region: 'Maharashtra',
+    store_count: 25,
+    status: 'active',
+  },
+  {
+    pin_code: '302001',
+    area_name: 'Jaipur — MI Road',
+    region: 'Rajasthan',
+    store_count: 15,
+    status: 'active',
+  },
+  {
+    pin_code: '600001',
+    area_name: 'Chennai — T Nagar',
+    region: 'Tamil Nadu',
+    store_count: 18,
+    status: 'active',
+  },
+];
+
+export const mockInventory: InventoryRecord[] = [
+  {
+    sku_id: 'SKU-001',
+    pin_code: '395001',
+    stock_on_hand: 340,
+    reorder_point: 100,
+    last_updated: '2024-01-20T00:00:00Z',
+    sku_name: 'Limca 500ml',
+    category: 'beverages',
+  },
+  {
+    sku_id: 'SKU-001',
+    pin_code: '395002',
+    stock_on_hand: 120,
+    reorder_point: 100,
+    last_updated: '2024-01-20T00:00:00Z',
+    sku_name: 'Limca 500ml',
+    category: 'beverages',
+  },
+  {
+    sku_id: 'SKU-002',
+    pin_code: '395001',
+    stock_on_hand: 450,
+    reorder_point: 150,
+    last_updated: '2024-01-20T00:00:00Z',
+    sku_name: 'Coca Cola 300ml',
+    category: 'beverages',
+  },
+  {
+    sku_id: 'SKU-003',
+    pin_code: '395001',
+    stock_on_hand: 80,
+    reorder_point: 100,
+    last_updated: '2024-01-20T00:00:00Z',
+    sku_name: 'Lays Classic 50g',
+    category: 'snacks',
+  },
+  {
+    sku_id: 'SKU-004',
+    pin_code: '395001',
+    stock_on_hand: 200,
+    reorder_point: 80,
+    last_updated: '2024-01-20T00:00:00Z',
+    sku_name: 'Amul Milk 1L',
+    category: 'dairy',
+  },
+  {
+    sku_id: 'SKU-004',
+    pin_code: '400001',
+    stock_on_hand: 350,
+    reorder_point: 100,
+    last_updated: '2024-01-20T00:00:00Z',
+    sku_name: 'Amul Milk 1L',
+    category: 'dairy',
+  },
+  {
+    sku_id: 'SKU-005',
+    pin_code: '395001',
+    stock_on_hand: 50,
+    reorder_point: 50,
+    last_updated: '2024-01-20T00:00:00Z',
+    sku_name: 'Colgate Toothpaste 100g',
+    category: 'personal_care',
+  },
+  {
+    sku_id: 'SKU-006',
+    pin_code: '395001',
+    stock_on_hand: 75,
+    reorder_point: 60,
+    last_updated: '2024-01-20T00:00:00Z',
+    sku_name: 'Detergent Powder 1kg',
+    category: 'household',
+  },
+];
+
+export const mockReadiness: ReadinessCheck = {
+  skus: { ok: true, count: 6 },
+  sales_history: { ok: true, days_of_data: 180 },
+  inventory: { ok: false, missing_count: 8 },
+  pin_codes: { ok: true, count: 5 },
+  all_clear: false,
+};
+
+export const mockColumnMapping: ColumnMapping = {
+  date_col: 'date',
+  sku_id_col: 'sku_id',
+  pin_code_col: 'pin_code',
+  units_sold_col: 'units_sold',
+  unit_price_col: 'unit_price',
+};
+
+export const mockDetectedColumns = [
+  'date',
+  'sku_id',
+  'pin_code',
+  'units_sold',
+  'unit_price',
+  'discount',
+  'customer_id',
+];
+
+export const mockPreviewRows = [
+  { date: '2024-01-01', sku_id: 'SKU-001', pin_code: '395001', units_sold: '142', unit_price: '18', discount: '0', customer_id: 'C001' },
+  { date: '2024-01-01', sku_id: 'SKU-002', pin_code: '395001', units_sold: '89', unit_price: '20', discount: '2', customer_id: 'C002' },
+  { date: '2024-01-01', sku_id: 'SKU-003', pin_code: '395002', units_sold: '56', unit_price: '20', discount: '0', customer_id: 'C003' },
+  { date: '2024-01-01', sku_id: 'SKU-001', pin_code: '400001', units_sold: '201', unit_price: '18', discount: '1', customer_id: 'C004' },
+  { date: '2024-01-02', sku_id: 'SKU-002', pin_code: '395001', units_sold: '67', unit_price: '20', discount: '0', customer_id: 'C005' },
+];
