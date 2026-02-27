@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PINCode, Region, REGIONS } from "@/types";
-import { mockPINCodes, mockReadiness } from "@/lib/mock-data";
 import { PageHeader } from "@/components/setup/PageHeader";
 import { ActionRow } from "@/components/setup/ActionRow";
 import { EmptyState } from "@/components/setup/EmptyState";
@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/setup/StatusBadge";
 import { ReadinessPanel } from "@/components/setup/ReadinessPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Edit2, X, Check, Plus, Rocket } from "lucide-react";
+import { Trash2, Edit2, X, Check, Plus, Rocket, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const validatePINCode = (data: Partial<PINCode>): string[] => {
@@ -23,8 +23,7 @@ const validatePINCode = (data: Partial<PINCode>): string[] => {
 };
 
 export default function PINCodesPage() {
-  const [pinCodes, setPINCodes] = useState<PINCode[]>(mockPINCodes);
-  const [readiness] = useState(mockReadiness);
+  const queryClient = useQueryClient();
   const [showNewRow, setShowNewRow] = useState(false);
   const [newRowData, setNewRowData] = useState<Partial<PINCode>>({});
   const [newRowErrors, setNewRowErrors] = useState<string[]>([]);
@@ -33,25 +32,100 @@ export default function PINCodesPage() {
   const [editRowErrors, setEditRowErrors] = useState<string[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
+  const { data: pinCodesData, isLoading } = useQuery({
+    queryKey: ["pin-codes"],
+    queryFn: async () => {
+      const res = await fetch("/api/pin-codes");
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+
+      const mappedPins = (json.data.pin_codes as Array<{
+        pin_code: string;
+        area_name: string;
+        region: string;
+        store_count: number;
+        status: string;
+      }>).map((pin) => ({
+        pin_code: pin.pin_code,
+        area_name: pin.area_name,
+        region: pin.region as Region,
+        store_count: pin.store_count,
+        status: pin.status as "active" | "inactive",
+      }));
+
+      return { pin_codes: mappedPins, total: json.data.total };
+    },
+  });
+
+  const pinCodes = pinCodesData?.pin_codes ?? [];
+
+  const createMutation = useMutation({
+    mutationFn: async (pin: Partial<PINCode>) => {
+      const res = await fetch("/api/pin-codes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pin),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data as PINCode;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pin-codes"] });
+      setShowNewRow(false);
+      setNewRowData({});
+      setNewRowErrors([]);
+    },
+    onError: (error: Error) => {
+      setNewRowErrors([error.message]);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ pin, data }: { pin: string; data: Partial<PINCode> }) => {
+      const res = await fetch(`/api/pin-codes/${pin}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data as PINCode;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pin-codes"] });
+      setEditingPIN(null);
+      setEditRowData({});
+      setEditRowErrors([]);
+    },
+    onError: (error: Error) => {
+      setEditRowErrors([error.message]);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (pin: string) => {
+      const res = await fetch(`/api/pin-codes/${pin}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pin-codes"] });
+      setDeleteConfirm(null);
+    },
+    onError: (error: Error) => {
+      alert(error.message);
+      setDeleteConfirm(null);
+    },
+  });
+
   const handleSaveNew = () => {
     const errors = validatePINCode(newRowData);
     if (errors.length > 0) {
       setNewRowErrors(errors);
       return;
     }
-
-    const newPIN: PINCode = {
-      pin_code: newRowData.pin_code!,
-      area_name: newRowData.area_name!,
-      region: newRowData.region as Region,
-      store_count: newRowData.store_count || 0,
-      status: "active",
-    };
-
-    setPINCodes([...pinCodes, newPIN]);
-    setShowNewRow(false);
-    setNewRowData({});
-    setNewRowErrors([]);
+    createMutation.mutate(newRowData);
   };
 
   const handleCancelNew = () => {
@@ -72,15 +146,7 @@ export default function PINCodesPage() {
       setEditRowErrors(errors);
       return;
     }
-
-    setPINCodes(pinCodes.map((p) =>
-      p.pin_code === editingPIN
-        ? { ...p, ...editRowData }
-        : p
-    ));
-    setEditingPIN(null);
-    setEditRowData({});
-    setEditRowErrors([]);
+    updateMutation.mutate({ pin: editingPIN!, data: editRowData });
   };
 
   const handleCancelEdit = () => {
@@ -90,13 +156,34 @@ export default function PINCodesPage() {
   };
 
   const handleDelete = (pinCode: string) => {
-    setPINCodes(pinCodes.filter((p) => p.pin_code !== pinCode));
-    setDeleteConfirm(null);
+    deleteMutation.mutate(pinCode);
   };
 
   const handleRunForecast = () => {
     console.log("Triggering forecast...");
   };
+
+  const readiness = {
+    skus: { ok: false, count: 0 },
+    sales_history: { ok: false, days_of_data: 0 },
+    inventory: { ok: false, missing_count: 0 },
+    pin_codes: { ok: pinCodes.filter((p) => p.status === "active").length > 0, count: pinCodes.filter((p) => p.status === "active").length },
+    all_clear: pinCodes.filter((p) => p.status === "active").length > 0,
+  };
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader
+          title="Stores & PIN Codes"
+          description="Manage geographic zones and check data readiness"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -139,8 +226,8 @@ export default function PINCodesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {pinCodes.map((pin) => (
-                    <tr key={pin.pin_code} className="border-b last:border-0">
+                  {pinCodes.map((pin, idx) => (
+                    <tr key={`${pin.pin_code}-${idx}`} className="border-b last:border-0">
                       {editingPIN === pin.pin_code ? (
                         <>
                           <td className="px-4 py-3 font-mono text-sm">{pin.pin_code}</td>
@@ -177,7 +264,7 @@ export default function PINCodesPage() {
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
-                              <Button size="sm" variant="ghost" onClick={handleSaveEdit} className="h-8 w-8 p-0">
+                              <Button size="sm" variant="ghost" onClick={handleSaveEdit} className="h-8 w-8 p-0" disabled={updateMutation.isPending}>
                                 <Check className="h-4 w-4 text-green-600" />
                               </Button>
                               <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-8 w-8 p-0">
@@ -211,7 +298,7 @@ export default function PINCodesPage() {
                   ))}
 
                   {showNewRow && (
-                    <tr className="border-b bg-cyan-50">
+                    <tr key="new-pin-row" className="border-b bg-cyan-50">
                       <td className="px-4 py-3">
                         <Input
                           value={newRowData.pin_code || ""}
@@ -256,7 +343,7 @@ export default function PINCodesPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <Button size="sm" variant="ghost" onClick={handleSaveNew} className="h-8 w-8 p-0">
+                          <Button size="sm" variant="ghost" onClick={handleSaveNew} className="h-8 w-8 p-0" disabled={createMutation.isPending}>
                             <Check className="h-4 w-4 text-green-600" />
                           </Button>
                           <Button size="sm" variant="ghost" onClick={handleCancelNew} className="h-8 w-8 p-0">
@@ -271,7 +358,7 @@ export default function PINCodesPage() {
             </div>
 
             {(newRowErrors.length > 0 || editRowErrors.length > 0) && (
-              <div className="px-4 py-3 bg-red-50 border-t border-red-200">
+              <div className="px-4 py-3 bg-red-50 border-t border-red-200" key="error-banner">
                 {(newRowErrors.length > 0 ? newRowErrors : editRowErrors).map((error, i) => (
                   <p key={i} className="text-sm text-red-600">{error}</p>
                 ))}
@@ -310,7 +397,9 @@ export default function PINCodesPage() {
             </p>
             <div className="mt-4 flex justify-end gap-3">
               <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-              <Button variant="destructive" onClick={() => handleDelete(deleteConfirm)}>Delete</Button>
+              <Button variant="destructive" onClick={() => handleDelete(deleteConfirm)} disabled={deleteMutation.isPending}>
+                {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              </Button>
             </div>
           </div>
         </div>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { InventoryRecord, InventoryStatus, SKU_CATEGORIES } from "@/types";
-import { mockInventory, mockPINCodes } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { InventoryRecord, InventoryStatus, SKUCategory, SKU_CATEGORIES } from "@/types";
 import { PageHeader } from "@/components/setup/PageHeader";
 import { ActionRow } from "@/components/setup/ActionRow";
 import { EmptyState } from "@/components/setup/EmptyState";
@@ -10,51 +10,81 @@ import { StatusBadge } from "@/components/setup/StatusBadge";
 import { CategoryTag } from "@/components/setup/CategoryTag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, Save, AlertCircle } from "lucide-react";
+import { Upload, Save, AlertCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const getInventoryStatus = (record: InventoryRecord): InventoryStatus => {
+  if (!record.reorder_point || record.reorder_point === 0) return "healthy";
   const ratio = record.stock_on_hand / record.reorder_point;
   if (ratio >= 1.5) return "healthy";
   if (ratio >= 0.8) return "low";
   return "critical";
 };
 
+interface DbInventoryRecord {
+  sku_id: string;
+  pin_code: string;
+  stock_on_hand: number;
+  reorder_point: number;
+  last_updated: string;
+  sku_name?: string;
+  category?: string;
+}
+
 export default function InventoryPage() {
+  const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ pin_code: "all", category: "all" });
-  const [localInventory, setLocalInventory] = useState<InventoryRecord[]>(mockInventory);
+  const [localInventory, setLocalInventory] = useState<InventoryRecord[]>([]);
   const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
   const [isDirty, setIsDirty] = useState(false);
 
-  const filteredInventory = useMemo(() => {
-    let filtered = [...localInventory];
-    if (filters.pin_code !== "all") {
-      filtered = filtered.filter((r) => r.pin_code === filters.pin_code);
-    }
-    if (filters.category !== "all") {
-      filtered = filtered.filter((r) => r.category === filters.category);
-    }
-    return filtered;
-  }, [localInventory, filters]);
+  const { data: inventoryData, isLoading } = useQuery({
+    queryKey: ["inventory", filters.pin_code, filters.category],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.pin_code !== "all") params.set("pin", filters.pin_code);
+      if (filters.category !== "all") params.set("category", filters.category);
+      
+      const res = await fetch(`/api/inventory?${params.toString()}`);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data as { records: DbInventoryRecord[]; total: number };
+    },
+  });
 
-  const handleResetFilters = () => {
-    setFilters({ pin_code: "all", category: "all" });
-    setLocalInventory(mockInventory);
-    setDirtyRows(new Set());
-    setIsDirty(false);
-  };
+  useEffect(() => {
+    if (inventoryData?.records) {
+      setLocalInventory(inventoryData.records.map(r => ({
+        sku_id: r.sku_id,
+        pin_code: r.pin_code,
+        stock_on_hand: r.stock_on_hand,
+        reorder_point: r.reorder_point,
+        last_updated: r.last_updated,
+        sku_name: r.sku_name,
+        category: r.category as SKUCategory,
+      })));
+      setDirtyRows(new Set());
+      setIsDirty(false);
+    }
+  }, [inventoryData]);
 
-  const handleApplyFilters = () => {
-    const filtered = [...mockInventory];
-    const finalFiltered = filtered.filter((r) => {
-      if (filters.pin_code !== "all" && r.pin_code !== filters.pin_code) return false;
-      if (filters.category !== "all" && r.category !== filters.category) return false;
-      return true;
-    });
-    setLocalInventory(finalFiltered);
-    setDirtyRows(new Set());
-    setIsDirty(false);
-  };
+  const updateMutation = useMutation({
+    mutationFn: async (records: InventoryRecord[]) => {
+      const res = await fetch("/api/inventory", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ records }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      setDirtyRows(new Set());
+      setIsDirty(false);
+    },
+  });
 
   const handleCellChange = (
     skuId: string,
@@ -75,23 +105,41 @@ export default function InventoryPage() {
   };
 
   const handleSaveAll = () => {
-    console.log("Saving:", Array.from(dirtyRows));
+    const dirtyRecords = localInventory.filter((row) =>
+      dirtyRows.has(`${row.sku_id}:${row.pin_code}`)
+    );
+    updateMutation.mutate(dirtyRecords);
+  };
+
+  const handleDiscard = () => {
+    if (inventoryData?.records) {
+      setLocalInventory(inventoryData.records.map(r => ({
+        sku_id: r.sku_id,
+        pin_code: r.pin_code,
+        stock_on_hand: r.stock_on_hand,
+        reorder_point: r.reorder_point,
+        last_updated: r.last_updated,
+        sku_name: r.sku_name,
+        category: r.category as SKUCategory,
+      })));
+    }
     setDirtyRows(new Set());
     setIsDirty(false);
   };
 
-  const handleDiscard = () => {
-    let filtered = [...mockInventory];
-    if (filters.pin_code !== "all") {
-      filtered = filtered.filter((r) => r.pin_code === filters.pin_code);
-    }
-    if (filters.category !== "all") {
-      filtered = filtered.filter((r) => r.category === filters.category);
-    }
-    setLocalInventory(filtered);
-    setDirtyRows(new Set());
-    setIsDirty(false);
-  };
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader
+          title="Current Inventory"
+          description="Manage stock levels for each SKU at each PIN code"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -116,11 +164,9 @@ export default function InventoryPage() {
             className="rounded-md border border-input bg-background px-3 py-2 text-sm"
           >
             <option value="all">All PIN Codes</option>
-            {mockPINCodes.map((p) => (
-              <option key={p.pin_code} value={p.pin_code}>
-                {p.pin_code} — {p.area_name}
-              </option>
-            ))}
+            <option value="395001">395001 — Surat</option>
+            <option value="395002">395002 — Varachha</option>
+            <option value="400001">400001 — Mumbai</option>
           </select>
           <select
             value={filters.category}
@@ -134,13 +180,10 @@ export default function InventoryPage() {
               </option>
             ))}
           </select>
-          <Button onClick={handleApplyFilters} className="text-sm">
-            Apply Filters
-          </Button>
         </div>
       </ActionRow>
 
-      {filteredInventory.length === 0 ? (
+      {localInventory.length === 0 ? (
         <EmptyState
           title="No inventory data"
           description="Import or add inventory records to start tracking stock levels"
@@ -164,7 +207,7 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredInventory.map((record) => {
+                  {localInventory.map((record) => {
                     const status = getInventoryStatus(record);
                     const key = `${record.sku_id}:${record.pin_code}`;
                     const isDirtyRow = dirtyRows.has(key);
@@ -237,8 +280,8 @@ export default function InventoryPage() {
                   <Button variant="outline" onClick={handleDiscard}>
                     Discard
                   </Button>
-                  <Button onClick={handleSaveAll}>
-                    Save Changes
+                  <Button onClick={handleSaveAll} disabled={updateMutation.isPending}>
+                    {updateMutation.isPending ? "Saving..." : "Save Changes"}
                   </Button>
                 </div>
               </div>

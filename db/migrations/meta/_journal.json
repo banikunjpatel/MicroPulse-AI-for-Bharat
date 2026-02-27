@@ -8,6 +8,27 @@
       "when": 1772031927149,
       "tag": "0000_burly_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772121351926,
+      "tag": "0001_eager_sphinx",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772129621352,
+      "tag": "0002_loud_celestials",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772130414573,
+      "tag": "0003_even_mysterio",
+      "breakpoints": true
     }
   ]
 }

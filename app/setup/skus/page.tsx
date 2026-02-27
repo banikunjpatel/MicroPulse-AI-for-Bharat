@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SKU, SKUCategory, SKU_CATEGORIES } from "@/types";
-import { mockSKUs } from "@/lib/mock-data";
 import { PageHeader } from "@/components/setup/PageHeader";
 import { ActionRow } from "@/components/setup/ActionRow";
 import { EmptyState } from "@/components/setup/EmptyState";
@@ -10,8 +10,7 @@ import { StatusBadge } from "@/components/setup/StatusBadge";
 import { CategoryTag } from "@/components/setup/CategoryTag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Trash2, Edit2, X, Check, Plus } from "lucide-react";
+import { Trash2, Edit2, X, Check, Plus, Upload, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const validateSKU = (data: Partial<SKU>): string[] => {
@@ -24,8 +23,30 @@ const validateSKU = (data: Partial<SKU>): string[] => {
   return errors;
 };
 
+function mapDbToSKU(dbSku: {
+  id: string;
+  name: string;
+  category: string;
+  unitCostPaise: number;
+  leadTimeDays: number;
+  status: string;
+  createdAt: Date;
+  updatedAt: Date;
+}): SKU {
+  return {
+    id: dbSku.id,
+    name: dbSku.name,
+    category: dbSku.category as SKUCategory,
+    unit_cost_paise: dbSku.unitCostPaise,
+    lead_time_days: dbSku.leadTimeDays,
+    status: dbSku.status as "active" | "inactive" | "no_history",
+    created_at: dbSku.createdAt.toISOString(),
+    updated_at: dbSku.updatedAt.toISOString(),
+  };
+}
+
 export default function SKUCatalogPage() {
-  const [skus, setSkus] = useState<SKU[]>(mockSKUs);
+  const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showNewRow, setShowNewRow] = useState(false);
   const [newRowData, setNewRowData] = useState<Partial<SKU>>({});
@@ -33,6 +54,101 @@ export default function SKUCatalogPage() {
   const [editRowData, setEditRowData] = useState<Partial<SKU>>({});
   const [editRowErrors, setEditRowErrors] = useState<string[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+
+  const { data: skusData, isLoading } = useQuery({
+    queryKey: ["skus"],
+    queryFn: async () => {
+      const res = await fetch("/api/skus");
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      
+      // Map camelCase from DB to snake_case for frontend
+      const mappedSkus = (json.data.skus as Array<{
+        id: string;
+        name: string;
+        category: string;
+        unitCostPaise: number;
+        leadTimeDays: number;
+        status: string;
+        createdAt: string;
+        updatedAt: string;
+      }>).map(sku => ({
+        id: sku.id,
+        name: sku.name,
+        category: sku.category as SKUCategory,
+        unit_cost_paise: sku.unitCostPaise,
+        lead_time_days: sku.leadTimeDays,
+        status: sku.status as "active" | "inactive" | "no_history",
+        created_at: sku.createdAt,
+        updated_at: sku.updatedAt,
+      }));
+      
+      return { skus: mappedSkus, total: json.data.total };
+    },
+  });
+
+  const skus = skusData?.skus ?? [];
+
+  const createMutation = useMutation({
+    mutationFn: async (sku: Partial<SKU>) => {
+      const res = await fetch("/api/skus", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sku),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data as SKU;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["skus"] });
+      setShowNewRow(false);
+      setNewRowData({});
+      setNewRowErrors([]);
+    },
+    onError: (error: Error) => {
+      setNewRowErrors([error.message]);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<SKU> }) => {
+      const res = await fetch(`/api/skus/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data as SKU;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["skus"] });
+      setEditingId(null);
+      setEditRowData({});
+      setEditRowErrors([]);
+    },
+    onError: (error: Error) => {
+      setEditRowErrors([error.message]);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/skus/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["skus"] });
+      setDeleteConfirm(null);
+    },
+    onError: (error: Error) => {
+      alert(error.message);
+      setDeleteConfirm(null);
+    },
+  });
 
   const formatCurrency = (paise: number) => {
     return `₹${(paise / 100).toFixed(2)}`;
@@ -44,23 +160,7 @@ export default function SKUCatalogPage() {
       setNewRowErrors(errors);
       return;
     }
-    
-    const newId = `SKU-${String(skus.length + 1).padStart(3, "0")}`;
-    const newSKU: SKU = {
-      id: newId,
-      name: newRowData.name!,
-      category: newRowData.category as SKUCategory,
-      unit_cost_paise: newRowData.unit_cost_paise!,
-      lead_time_days: newRowData.lead_time_days!,
-      status: "no_history",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    
-    setSkus([...skus, newSKU]);
-    setShowNewRow(false);
-    setNewRowData({});
-    setNewRowErrors([]);
+    createMutation.mutate(newRowData);
   };
 
   const handleCancelNew = () => {
@@ -81,15 +181,7 @@ export default function SKUCatalogPage() {
       setEditRowErrors(errors);
       return;
     }
-
-    setSkus(skus.map(s => 
-      s.id === editingId 
-        ? { ...s, ...editRowData, updated_at: new Date().toISOString() }
-        : s
-    ));
-    setEditingId(null);
-    setEditRowData({});
-    setEditRowErrors([]);
+    updateMutation.mutate({ id: editingId!, data: editRowData });
   };
 
   const handleCancelEdit = () => {
@@ -99,9 +191,22 @@ export default function SKUCatalogPage() {
   };
 
   const handleDelete = (id: string) => {
-    setSkus(skus.filter(s => s.id !== id));
-    setDeleteConfirm(null);
+    deleteMutation.mutate(id);
   };
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader
+          title="SKU Catalog"
+          description="Manage your product inventory for demand forecasting"
+        />
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -115,8 +220,8 @@ export default function SKUCatalogPage() {
           <Button onClick={() => setShowNewRow(true)} className="gap-2">
             <Plus className="h-4 w-4" /> Add SKU
           </Button>
-          <Button variant="outline" className="gap-2">
-            Import CSV
+          <Button variant="outline" className="gap-2" onClick={() => setShowImportModal(true)}>
+            <Upload className="h-4 w-4" /> Import CSV
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">{skus.length} SKUs total</p>
@@ -194,7 +299,7 @@ export default function SKUCatalogPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <Button size="sm" variant="ghost" onClick={handleSaveEdit} className="h-8 w-8 p-0">
+                            <Button size="sm" variant="ghost" onClick={handleSaveEdit} className="h-8 w-8 p-0" disabled={updateMutation.isPending}>
                               <Check className="h-4 w-4 text-green-600" />
                             </Button>
                             <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-8 w-8 p-0">
@@ -280,7 +385,7 @@ export default function SKUCatalogPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="ghost" onClick={handleSaveNew} className="h-8 w-8 p-0">
+                        <Button size="sm" variant="ghost" onClick={handleSaveNew} className="h-8 w-8 p-0" disabled={createMutation.isPending}>
                           <Check className="h-4 w-4 text-green-600" />
                         </Button>
                         <Button size="sm" variant="ghost" onClick={handleCancelNew} className="h-8 w-8 p-0">
@@ -313,11 +418,197 @@ export default function SKUCatalogPage() {
             </p>
             <div className="mt-4 flex justify-end gap-3">
               <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-              <Button variant="destructive" onClick={() => handleDelete(deleteConfirm)}>Delete</Button>
+              <Button variant="destructive" onClick={() => handleDelete(deleteConfirm)} disabled={deleteMutation.isPending}>
+                {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              </Button>
             </div>
           </div>
         </div>
       )}
+
+      {showImportModal && (
+        <CSVImportModal
+          onClose={() => setShowImportModal(false)}
+          onImportComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ["skus"] });
+            setShowImportModal(false);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function CSVImportModal({ onClose, onImportComplete }: { onClose: () => void; onImportComplete: () => void }) {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<Record<string, string>[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [importing, setImporting] = useState(false);
+  const [result, setResult] = useState<{ created: number; skipped: number } | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    
+    if (!selectedFile.name.endsWith(".csv")) {
+      setErrors(["Please select a CSV file"]);
+      return;
+    }
+
+    setFile(selectedFile);
+    setErrors([]);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.trim().split("\n");
+      if (lines.length < 2) {
+        setErrors(["CSV file is empty or has no data rows"]);
+        return;
+      }
+      
+      const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+      const requiredCols = ["name", "category", "unit_cost", "lead_time_days"];
+      const missing = requiredCols.filter(c => !headers.includes(c));
+      if (missing.length > 0) {
+        setErrors([`Missing required columns: ${missing.join(", ")}`]);
+        return;
+      }
+
+      const data: Record<string, string>[] = [];
+      for (let i = 1; i < Math.min(lines.length, 6); i++) {
+        const values = lines[i].split(",").map(v => v.trim());
+        const row: Record<string, string> = {};
+        headers.forEach((h, idx) => {
+          row[h] = values[idx] || "";
+        });
+        data.push(row);
+      }
+      setPreview(data);
+    };
+    reader.readAsText(selectedFile);
+  };
+
+  const handleImport = async () => {
+    if (!file) return;
+    
+    setImporting(true);
+    setErrors([]);
+
+    try {
+      const text = await file.text();
+      const lines = text.trim().split("\n");
+      const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+      
+      const skuList: Record<string, string | number>[] = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(",").map(v => v.trim());
+        const row: Record<string, string | number> = {};
+        headers.forEach((h, idx) => {
+          if (h === "unit_cost") {
+            row.unit_cost_paise = Math.round(parseFloat(values[idx]) * 100);
+          } else {
+            row[h] = values[idx];
+          }
+        });
+        skuList.push(row);
+      }
+
+      const res = await fetch("/api/skus/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skus: skuList }),
+      });
+      
+      const json = await res.json();
+      if (!json.success) {
+        setErrors([json.error.message]);
+        return;
+      }
+      
+      setResult({ created: json.data.created_count, skipped: json.data.skipped_count });
+      setTimeout(() => {
+        onImportComplete();
+      }, 1500);
+    } catch (err) {
+      setErrors(["Failed to import SKUs"]);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Import SKUs from CSV</h3>
+          <Button variant="ghost" onClick={onClose} className="h-8 w-8 p-0">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Select CSV File</label>
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileChange}
+            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100"
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Required columns: name, category, unit_cost, lead_time_days
+          </p>
+        </div>
+
+        {errors.length > 0 && (
+          <div className="mb-4 p-3 bg-red-50 rounded-lg">
+            {errors.map((err, i) => (
+              <p key={i} className="text-sm text-red-600">{err}</p>
+            ))}
+          </div>
+        )}
+
+        {result && (
+          <div className="mb-4 p-3 bg-green-50 rounded-lg">
+            <p className="text-sm text-green-700">
+              Successfully imported {result.created} SKUs ({result.skipped} skipped as duplicates)
+            </p>
+          </div>
+        )}
+
+        {preview.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium mb-2">Preview (first 5 rows)</h4>
+            <div className="overflow-x-auto border rounded-lg">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-slate-50">
+                    {Object.keys(preview[0]).map(key => (
+                      <th key={key} className="px-3 py-2 text-left font-medium">{key}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.map((row, i) => (
+                    <tr key={i} className="border-b">
+                      {Object.values(row).map((val, j) => (
+                        <td key={j} className="px-3 py-2">{val}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleImport} disabled={!file || preview.length === 0 || importing}>
+            {importing ? "Importing..." : `Import ${preview.length > 0 ? preview.length + (parseInt(preview.length.toString()) || 0) - 5 : ""} SKUs`}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
