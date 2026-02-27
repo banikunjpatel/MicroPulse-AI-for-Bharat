@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index, integer, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, index, integer, pgEnum, serial } from "drizzle-orm/pg-core";
 
 export const skuCategoryEnum = pgEnum("sku_category", [
   "beverages",
@@ -14,6 +14,13 @@ export const skuStatusEnum = pgEnum("sku_status", [
   "active",
   "inactive",
   "no_history",
+]);
+
+export const uploadSessionStatusEnum = pgEnum("upload_session_status", [
+  "uploaded",
+  "mapped",
+  "validated",
+  "imported",
 ]);
 
 export const skus = pgTable(
@@ -61,6 +68,45 @@ export const pinCodes = pgTable(
     status: pinCodeStatusEnum("status").default("active").notNull(),
   },
   (table) => [index("pin_codes_region_idx").on(table.region)]
+);
+
+export const uploadSessions = pgTable(
+  "upload_sessions",
+  {
+    id: serial("id").primaryKey(),
+    sessionId: text("session_id").notNull().unique(),
+    s3Key: text("s3_key"),
+    originalFilename: text("original_filename").notNull(),
+    rowCount: integer("row_count").default(0),
+    detectedColumns: text("detected_columns").array(),
+    columnMapping: text("column_mapping"),
+    status: uploadSessionStatusEnum("status").default("uploaded").notNull(),
+    isSynthetic: boolean("is_synthetic").default(false).notNull(),
+    errorMessage: text("error_message"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [index("upload_sessions_session_idx").on(table.sessionId)]
+);
+
+export const salesHistory = pgTable(
+  "sales_history",
+  {
+    id: serial("id").primaryKey(),
+    date: timestamp("date").notNull(),
+    skuId: text("sku_id").notNull().references(() => skus.id, { onDelete: "cascade" }),
+    pinCode: text("pin_code").notNull().references(() => pinCodes.pinCode, { onDelete: "cascade" }),
+    unitsSold: integer("units_sold").notNull(),
+    unitPricePaise: integer("unit_price_paise"),
+    sessionId: text("session_id").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("sales_history_date_idx").on(table.date),
+    index("sales_history_sku_idx").on(table.skuId),
+    index("sales_history_pin_idx").on(table.pinCode),
+    index("sales_history_session_idx").on(table.sessionId),
+  ]
 );
 
 export const user = pgTable("user", {

@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { PageHeader } from "@/components/setup/PageHeader";
 import { StepIndicator } from "@/components/setup/StepIndicator";
 import { Button } from "@/components/ui/button";
-import { mockDetectedColumns, mockPreviewRows } from "@/lib/mock-data";
-import { ArrowLeft, ArrowRight, Check, AlertCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle, Sparkles, Loader2 } from "lucide-react";
 import { ColumnMapping } from "@/types";
 
 const STEPS = [
@@ -34,10 +34,24 @@ const requiredFields: { key: keyof ColumnMapping; label: string; required: boole
 
 export default function ColumnMappingPage() {
   const router = useRouter();
-  const [availableColumns, setAvailableColumns] = useState<string[]>(mockDetectedColumns);
+  const [availableColumns, setAvailableColumns] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Partial<ColumnMapping>>({});
   const [autoDetected, setAutoDetected] = useState<Set<string>>(new Set());
   const [isSynthetic, setIsSynthetic] = useState(false);
+  const [previewRows, setPreviewRows] = useState<Record<string, string>[]>([]);
+
+  const saveMappingMutation = useMutation({
+    mutationFn: async ({ sessionId, mapping }: { sessionId: string; mapping: ColumnMapping }) => {
+      const res = await fetch("/api/sales-history/map-columns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, mapping }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data;
+    },
+  });
 
   useEffect(() => {
     const session = sessionStorage.getItem("upload_session");
@@ -47,7 +61,7 @@ export default function ColumnMappingPage() {
     }
 
     const sessionData = JSON.parse(session);
-    const columns = sessionData.detected_columns || mockDetectedColumns;
+    const columns = sessionData.detected_columns || [];
     setAvailableColumns(columns);
     setIsSynthetic(sessionData.is_synthetic || false);
 
@@ -74,19 +88,29 @@ export default function ColumnMappingPage() {
 
   const getSampleValue = (columnName: string | undefined) => {
     if (!columnName) return "—";
-    const firstRow = mockPreviewRows[0] as Record<string, string>;
+    const firstRow = previewRows[0] as Record<string, string>;
     return firstRow?.[columnName] || "—";
   };
 
-  const handleProceed = () => {
+  const handleProceed = async () => {
     const session = JSON.parse(sessionStorage.getItem("upload_session") || "{}");
-    session.column_mapping = mapping;
-    sessionStorage.setItem("upload_session", JSON.stringify(session));
-    router.push("/setup/inventory");
+    
+    try {
+      await saveMappingMutation.mutateAsync({
+        sessionId: session.session_id,
+        mapping: mapping as ColumnMapping,
+      });
+
+      session.column_mapping = mapping;
+      sessionStorage.setItem("upload_session", JSON.stringify(session));
+      router.push("/setup/sales-history/validate");
+    } catch (error) {
+      console.error("Failed to save mapping:", error);
+    }
   };
 
   const handleSkipSynthetic = () => {
-    router.push("/setup/inventory");
+    router.push("/setup/sales-history/validate");
   };
 
   if (isSynthetic) {
@@ -237,8 +261,17 @@ export default function ColumnMappingPage() {
         <Button variant="outline" onClick={() => router.back()}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-        <Button onClick={handleProceed} disabled={!canProceed()}>
-          Validate Data <ArrowRight className="ml-2 h-4 w-4" />
+        <Button onClick={handleProceed} disabled={!canProceed() || saveMappingMutation.isPending}>
+          {saveMappingMutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              Validate Data <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
         </Button>
       </div>
     </div>

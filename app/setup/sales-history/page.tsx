@@ -2,11 +2,11 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { PageHeader } from "@/components/setup/PageHeader";
 import { StepIndicator } from "@/components/setup/StepIndicator";
 import { Button } from "@/components/ui/button";
-import { mockPreviewRows, mockDetectedColumns } from "@/lib/mock-data";
-import { Upload, FileText, Sparkles, ArrowRight, Download } from "lucide-react";
+import { Upload, FileText, Sparkles, ArrowRight, Download, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
@@ -20,9 +20,76 @@ export default function SalesHistoryUploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [previewRows, setPreviewRows] = useState<Record<string, string>[]>(mockPreviewRows);
-  const [detectedColumns] = useState<string[]>(mockDetectedColumns);
+  const [previewRows, setPreviewRows] = useState<Record<string, string>[]>([]);
+  const [detectedColumns, setDetectedColumns] = useState<string[]>([]);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "done">("idle");
+
+  const createSessionMutation = useMutation({
+    mutationFn: async (filename: string) => {
+      const res = await fetch("/api/sales-history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename,
+          detected_columns: detectedColumns,
+        }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data;
+    },
+  });
+
+  const uploadFileMutation = useMutation({
+    mutationFn: async ({ sessionId, file }: { sessionId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append("session_id", sessionId);
+      formData.append("file", file);
+
+      const res = await fetch("/api/sales-history/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data;
+    },
+  });
+
+  const generateSyntheticMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/sales-history/generate-synthetic", {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return json.data;
+    },
+  });
+
+  const parseCSVPreview = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      const lines = text.trim().split("\n");
+      if (lines.length < 2) return;
+
+      const headers = lines[0].split(",").map((h) => h.trim());
+      setDetectedColumns(headers);
+
+      const rows: Record<string, string>[] = [];
+      for (let i = 1; i < Math.min(lines.length, 6); i++) {
+        const values = lines[i].split(",").map((v) => v.trim());
+        const row: Record<string, string> = {};
+        headers.forEach((h, idx) => {
+          row[h] = values[idx] || "";
+        });
+        rows.push(row);
+      }
+      setPreviewRows(rows);
+    };
+    reader.readAsText(file);
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -40,6 +107,7 @@ export default function SalesHistoryUploadPage() {
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile && droppedFile.name.endsWith(".csv")) {
       setFile(droppedFile);
+      parseCSVPreview(droppedFile);
       setUploadStatus("done");
     }
   }, []);
@@ -48,34 +116,68 @@ export default function SalesHistoryUploadPage() {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      parseCSVPreview(selectedFile);
       setUploadStatus("done");
     }
   };
 
-  const handleProceed = () => {
-    sessionStorage.setItem(
-      "upload_session",
-      JSON.stringify({
-        session_id: "mock-session-" + Date.now(),
-        detected_columns: detectedColumns,
-        original_filename: file?.name || "sales_data.csv",
-      })
-    );
-    router.push("/setup/sales-history/map-columns");
+  const handleProceed = async () => {
+    if (!file) return;
+
+    setUploadStatus("uploading");
+
+    try {
+      const sessionData = await createSessionMutation.mutateAsync(file.name);
+
+      if (sessionData.is_s3) {
+        sessionStorage.setItem(
+          "upload_session",
+          JSON.stringify({
+            session_id: sessionData.session_id,
+            detected_columns: detectedColumns,
+            original_filename: file.name,
+          })
+        );
+        router.push("/setup/sales-history/map-columns");
+      } else {
+        await uploadFileMutation.mutateAsync({ sessionId: sessionData.session_id, file });
+
+        sessionStorage.setItem(
+          "upload_session",
+          JSON.stringify({
+            session_id: sessionData.session_id,
+            detected_columns: detectedColumns,
+            original_filename: file.name,
+          })
+        );
+        router.push("/setup/sales-history/map-columns");
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+      setUploadStatus("done");
+    }
   };
 
-  const handleGenerateSynthetic = () => {
-    sessionStorage.setItem(
-      "upload_session",
-      JSON.stringify({
-        session_id: "synthetic-" + Date.now(),
-        detected_columns: ["date", "sku_id", "pin_code", "units_sold", "unit_price"],
-        original_filename: "synthetic_data.csv",
-        is_synthetic: true,
-      })
-    );
-    router.push("/setup/sales-history/map-columns");
+  const handleGenerateSynthetic = async () => {
+    try {
+      const data = await generateSyntheticMutation.mutateAsync();
+      
+      sessionStorage.setItem(
+        "upload_session",
+        JSON.stringify({
+          session_id: data.session_id,
+          detected_columns: ["date", "sku_id", "pin_code", "units_sold", "unit_price"],
+          original_filename: "synthetic_data.csv",
+          is_synthetic: true,
+        })
+      );
+      router.push("/setup/sales-history/map-columns");
+    } catch (error) {
+      console.error("Failed to generate synthetic data:", error);
+    }
   };
+
+  const isLoading = createSessionMutation.isPending || uploadFileMutation.isPending || generateSyntheticMutation.isPending;
 
   return (
     <div>
@@ -145,8 +247,17 @@ export default function SalesHistoryUploadPage() {
               </div>
             </Button>
             
-            <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4" onClick={handleGenerateSynthetic}>
-              <Sparkles className="h-5 w-5 text-purple-600" />
+            <Button 
+              variant="outline" 
+              className="w-full justify-start gap-3 h-auto py-4" 
+              onClick={handleGenerateSynthetic}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-5 w-5 text-purple-600 animate-spin" />
+              ) : (
+                <Sparkles className="h-5 w-5 text-purple-600" />
+              )}
               <div className="text-left">
                 <p className="font-medium">Generate Synthetic Data (Demo)</p>
                 <p className="text-xs text-muted-foreground">Create sample data with 180 days, 12 SKUs, 3 PINs</p>
@@ -191,10 +302,19 @@ export default function SalesHistoryUploadPage() {
       <div className="mt-6 flex justify-end">
         <Button 
           onClick={handleProceed}
-          disabled={uploadStatus !== "done"}
+          disabled={uploadStatus !== "done" || isLoading}
           className="gap-2"
         >
-          Next: Map Columns <ArrowRight className="h-4 w-4" />
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              Next: Map Columns <ArrowRight className="h-4 w-4" />
+            </>
+          )}
         </Button>
       </div>
     </div>
