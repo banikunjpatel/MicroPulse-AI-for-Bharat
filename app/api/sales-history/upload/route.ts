@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { uploadSessions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
-import { saveFile, isUsingS3 } from "@/lib/storage";
+import { isUsingS3 } from "@/lib/storage";
 import fs from "fs";
 import path from "path";
 

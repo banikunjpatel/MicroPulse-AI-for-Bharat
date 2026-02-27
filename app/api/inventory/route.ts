@@ -6,18 +6,7 @@ import { eq, and, asc } from "drizzle-orm";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const pinCode = searchParams.get("pin");
     const category = searchParams.get("category");
-
-    let conditions = [];
-    
-    if (pinCode && pinCode !== "all") {
-      conditions.push(eq(inventory.pinCode, pinCode));
-    }
-    
-    if (category && category !== "all") {
-      conditions.push(eq(skus.category, category as any));
-    }
 
     const query = db
       .select({
@@ -33,16 +22,10 @@ export async function GET(request: NextRequest) {
       .innerJoin(skus, eq(inventory.skuId, skus.id))
       .orderBy(asc(skus.category), asc(skus.name), asc(inventory.pinCode));
 
-    let results;
-    if (conditions.length > 0) {
-      // For filtering, we'll fetch all and filter in memory since Drizzle doesn't support complex where clauses easily
-      results = await query;
-      
-      if (category && category !== "all") {
-        results = results.filter(r => r.category === category);
-      }
-    } else {
-      results = await query;
+    let results = await query;
+    
+    if (category && category !== "all") {
+      results = results.filter(r => r.category === category);
     }
 
     const records = results.map((r) => ({

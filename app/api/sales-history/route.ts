@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { uploadSessions } from "@/lib/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import { getPresignedUploadUrl, isUsingS3 } from "@/lib/storage";
 import { randomUUID } from "crypto";
 
@@ -47,7 +47,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { filename, file_size_bytes, detected_columns } = body;
+    const { filename, detected_columns } = body;
 
     if (!filename) {
       return NextResponse.json(
@@ -58,20 +58,11 @@ export async function POST(request: NextRequest) {
 
     const sessionId = randomUUID();
     
-    let presignedUrl: string;
-    let s3Key: string | undefined;
-    
-    if (isUsingS3()) {
-      const result = await getPresignedUploadUrl(sessionId, filename);
-      presignedUrl = result.url;
-      s3Key = result.key;
-    } else {
-      const result = await getPresignedUploadUrl(sessionId, filename);
-      presignedUrl = result.url;
-      s3Key = result.key;
-    }
+    const result = await getPresignedUploadUrl(sessionId, filename);
+    const presignedUrl = result.url;
+    const s3Key = result.key;
 
-    const [session] = await db
+    await db
       .insert(uploadSessions)
       .values({
         sessionId,

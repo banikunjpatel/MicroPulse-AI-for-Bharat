@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { InventoryRecord, InventoryStatus, SKUCategory, SKU_CATEGORIES } from "@/types";
 import { PageHeader } from "@/components/setup/PageHeader";
@@ -34,8 +34,7 @@ interface DbInventoryRecord {
 export default function InventoryPage() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ pin_code: "all", category: "all" });
-  const [localInventory, setLocalInventory] = useState<InventoryRecord[]>([]);
-  const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
+  const [edits, setEdits] = useState<Record<string, InventoryRecord>>({});
   const [isDirty, setIsDirty] = useState(false);
 
   const { data: inventoryData, isLoading } = useQuery({
@@ -52,21 +51,18 @@ export default function InventoryPage() {
     },
   });
 
-  useEffect(() => {
-    if (inventoryData?.records) {
-      setLocalInventory(inventoryData.records.map(r => ({
-        sku_id: r.sku_id,
-        pin_code: r.pin_code,
-        stock_on_hand: r.stock_on_hand,
-        reorder_point: r.reorder_point,
-        last_updated: r.last_updated,
-        sku_name: r.sku_name,
-        category: r.category as SKUCategory,
-      })));
-      setDirtyRows(new Set());
-      setIsDirty(false);
-    }
-  }, [inventoryData]);
+  const localInventory = (inventoryData?.records ?? []).map((r) => {
+    const key = `${r.sku_id}:${r.pin_code}`;
+    return edits[key] ?? {
+      sku_id: r.sku_id,
+      pin_code: r.pin_code,
+      stock_on_hand: r.stock_on_hand,
+      reorder_point: r.reorder_point,
+      last_updated: r.last_updated,
+      sku_name: r.sku_name,
+      category: r.category as SKUCategory,
+    };
+  });
 
   const updateMutation = useMutation({
     mutationFn: async (records: InventoryRecord[]) => {
@@ -81,7 +77,7 @@ export default function InventoryPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
-      setDirtyRows(new Set());
+      setEdits({});
       setIsDirty(false);
     },
   });
@@ -93,38 +89,35 @@ export default function InventoryPage() {
     value: string
   ) => {
     const key = `${skuId}:${pinCode}`;
-    setDirtyRows((prev) => new Set(prev).add(key));
+    const numValue = parseInt(value) || 0;
+    
+    setEdits((prev) => ({
+      ...prev,
+      [key]: {
+        ...(prev[key] || {
+          sku_id: skuId,
+          pin_code: pinCode,
+          stock_on_hand: 0,
+          reorder_point: 0,
+        }),
+        [field]: numValue,
+      },
+    }));
     setIsDirty(true);
-    setLocalInventory((prev) =>
-      prev.map((row) =>
-        row.sku_id === skuId && row.pin_code === pinCode
-          ? { ...row, [field]: parseInt(value) || 0 }
-          : row
-      )
-    );
   };
 
   const handleSaveAll = () => {
-    const dirtyRecords = localInventory.filter((row) =>
-      dirtyRows.has(`${row.sku_id}:${row.pin_code}`)
-    );
+    const dirtyRecords = Object.values(edits);
     updateMutation.mutate(dirtyRecords);
   };
 
   const handleDiscard = () => {
-    if (inventoryData?.records) {
-      setLocalInventory(inventoryData.records.map(r => ({
-        sku_id: r.sku_id,
-        pin_code: r.pin_code,
-        stock_on_hand: r.stock_on_hand,
-        reorder_point: r.reorder_point,
-        last_updated: r.last_updated,
-        sku_name: r.sku_name,
-        category: r.category as SKUCategory,
-      })));
-    }
-    setDirtyRows(new Set());
+    setEdits({});
     setIsDirty(false);
+  };
+
+  const isDirtyRow = (skuId: string, pinCode: string) => {
+    return !!edits[`${skuId}:${pinCode}`];
   };
 
   if (isLoading) {
@@ -210,14 +203,14 @@ export default function InventoryPage() {
                   {localInventory.map((record) => {
                     const status = getInventoryStatus(record);
                     const key = `${record.sku_id}:${record.pin_code}`;
-                    const isDirtyRow = dirtyRows.has(key);
+                    const rowIsDirty = isDirtyRow(record.sku_id, record.pin_code);
 
                     return (
                       <tr
                         key={key}
                         className={cn(
                           "border-b last:border-0",
-                          isDirtyRow && "bg-amber-50"
+                          rowIsDirty && "bg-amber-50"
                         )}
                       >
                         <td className="px-4 py-3 font-mono text-sm">{record.sku_id}</td>
@@ -274,7 +267,7 @@ export default function InventoryPage() {
               <div className="container mx-auto flex items-center justify-between max-w-7xl">
                 <div className="flex items-center gap-2 text-amber-600">
                   <AlertCircle className="h-5 w-5" />
-                  <span className="font-medium">{dirtyRows.size} unsaved changes</span>
+                  <span className="font-medium">{Object.keys(edits).length} unsaved changes</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <Button variant="outline" onClick={handleDiscard}>

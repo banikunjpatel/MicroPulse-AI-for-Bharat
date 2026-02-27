@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { uploadSessions, salesHistory, skus } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getFile } from "@/lib/storage";
+import { parseDate } from "@/lib/date-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,11 +70,11 @@ export async function POST(request: NextRequest) {
       const unitsVal = row[mapping.units_sold_col?.toLowerCase()];
       const priceVal = mapping.unit_price_col ? row[mapping.unit_price_col?.toLowerCase()] : null;
 
-      const date = new Date(dateVal);
+      const date = parseDate(dateVal);
       const units = parseInt(unitsVal);
       const price = priceVal ? Math.round(parseFloat(priceVal) * 100) : null;
 
-      if (!dateVal || isNaN(date.getTime())) continue;
+      if (!date) continue;
       if (!skuVal || !validSkuIds.has(skuVal)) {
         skippedCount++;
         continue;

@@ -177,6 +177,27 @@ export default function SalesHistoryUploadPage() {
     }
   };
 
+  const handleDownloadTemplate = () => {
+    const templateHeaders = "date,sku_id,pin_code,units_sold,unit_price";
+    const sampleRows = [
+      "2024-01-01,SKU-001,395011,142,18.00",
+      "2024-01-01,SKU-002,395011,89,22.50",
+      "2024-01-02,SKU-001,395011,156,18.00",
+      "2024-01-02,SKU-002,395012,94,22.50",
+    ];
+    
+    const csvContent = [templateHeaders, ...sampleRows].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "sales_history_template.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const isLoading = createSessionMutation.isPending || uploadFileMutation.isPending || generateSyntheticMutation.isPending;
 
   return (
@@ -239,7 +260,7 @@ export default function SalesHistoryUploadPage() {
           <h2 className="text-lg font-semibold mb-4">Quick Start</h2>
           
           <div className="space-y-3">
-            <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4">
+            <Button variant="outline" className="w-full justify-start gap-3 h-auto py-4" onClick={handleDownloadTemplate}>
               <Download className="h-5 w-5 text-cyan-600" />
               <div className="text-left">
                 <p className="font-medium">Download Template</p>

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { uploadSessions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getFile } from "@/lib/storage";
+import { parseDate } from "@/lib/date-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,7 +74,8 @@ export async function POST(request: NextRequest) {
       const pinVal = row[mapping.pin_code_col?.toLowerCase()];
       const unitsVal = row[mapping.units_sold_col?.toLowerCase()];
 
-      if (!dateVal || isNaN(Date.parse(dateVal))) {
+      const parsedDate = parseDate(dateVal);
+      if (!parsedDate) {
         errors.push({ row: i, column: "date", value: dateVal || "", issue: "Invalid date format" });
         continue;
       }

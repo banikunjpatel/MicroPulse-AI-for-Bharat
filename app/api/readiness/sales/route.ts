@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { salesHistory, uploadSessions } from "@/lib/db/schema";
-import { sql, eq, and, gte, count } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 
 export async function GET() {
   try {

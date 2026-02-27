@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { PageHeader } from "@/components/setup/PageHeader";
 import { StepIndicator } from "@/components/setup/StepIndicator";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,31 @@ const STEPS = [
 
 export default function ConfirmPage() {
   const router = useRouter();
-  const [isSynthetic, setIsSynthetic] = useState(false);
-  const [summary, setSummary] = useState<{
-    filename: string;
-    total_rows: number;
+  const [sessionData, setSessionData] = useState<{
+    is_synthetic: boolean;
+    original_filename: string;
     session_id: string;
   } | null>(null);
+
+  useEffect(() => {
+    const session = sessionStorage.getItem("upload_session");
+    if (!session) {
+      router.replace("/setup/sales-history");
+      return;
+    }
+    setSessionData(JSON.parse(session));
+  }, [router]);
+
+  const { data: sessionDetails, isLoading: isLoadingSession } = useQuery({
+    queryKey: ["session", sessionData?.session_id],
+    queryFn: async () => {
+      if (!sessionData || sessionData.is_synthetic) return null;
+      const res = await fetch(`/api/sales-history/${sessionData.session_id}`);
+      const json = await res.json();
+      return json.success ? json.data : null;
+    },
+    enabled: !!sessionData && !sessionData.is_synthetic,
+  });
 
   const importMutation = useMutation({
     mutationFn: async (sessionId: string) => {
@@ -38,41 +57,36 @@ export default function ConfirmPage() {
   });
 
   useEffect(() => {
-    const session = sessionStorage.getItem("upload_session");
-    if (!session) {
-      router.replace("/setup/sales-history");
-      return;
-    }
-
-    const sessionData = JSON.parse(session);
-    setIsSynthetic(sessionData.is_synthetic || false);
-    setSummary({
-      filename: sessionData.original_filename,
-      total_rows: sessionData.is_synthetic ? 6480 : 0,
-      session_id: sessionData.session_id,
-    });
-
-    if (sessionData.is_synthetic) {
+    if (sessionData?.is_synthetic) {
       importMutation.mutate(sessionData.session_id);
     }
-  }, [router]);
+  }, [sessionData]);
+
+  const summary = useMemo(() => {
+    if (!sessionData) return null;
+    return {
+      filename: sessionData.original_filename,
+      total_rows: sessionData.is_synthetic ? 6480 : (sessionDetails?.row_count || 0),
+      session_id: sessionData.session_id,
+      date_range: sessionDetails?.date_range,
+    };
+  }, [sessionData, sessionDetails]);
+
+  const isSynthetic = sessionData?.is_synthetic ?? false;
+  const isLoading = !sessionData || isLoadingSession || importMutation.isPending;
+  const isSuccess = importMutation.isSuccess;
+  const importResult = importMutation.data;
 
   const handleImport = () => {
-    const session = sessionStorage.getItem("upload_session");
-    if (!session) return;
-
-    const sessionData = JSON.parse(session);
-    importMutation.mutate(sessionData.session_id);
+    if (sessionData) {
+      importMutation.mutate(sessionData.session_id);
+    }
   };
 
   const handleComplete = () => {
     sessionStorage.removeItem("upload_session");
     router.push("/setup/inventory");
   };
-
-  const isLoading = importMutation.isPending;
-  const isSuccess = importMutation.isSuccess;
-  const importResult = importMutation.data;
 
   return (
     <div>
@@ -99,21 +113,31 @@ export default function ConfirmPage() {
               <Calendar className="h-5 w-5 text-cyan-600" />
               <div>
                 <p className="text-sm text-muted-foreground">Date Range</p>
-                <p className="font-medium">180 days (simulated)</p>
+                {summary.date_range ? (
+                  <p className="font-medium">
+                    {summary.date_range.min_date} to {summary.date_range.max_date}
+                  </p>
+                ) : (
+                  <p className="font-medium">To be determined after import</p>
+                )}
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Package className="h-5 w-5 text-cyan-600" />
               <div>
                 <p className="text-sm text-muted-foreground">SKUs</p>
-                <p className="font-medium">All registered SKUs</p>
+                <p className="font-medium">
+                  {summary.date_range ? `${summary.date_range.unique_skus} SKUs` : "All registered SKUs"}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <MapPin className="h-5 w-5 text-cyan-600" />
               <div>
                 <p className="text-sm text-muted-foreground">PIN Codes</p>
-                <p className="font-medium">All active PIN codes</p>
+                <p className="font-medium">
+                  {summary.date_range ? `${summary.date_range.unique_pins} PIN codes` : "All active PIN codes"}
+                </p>
               </div>
             </div>
           </div>

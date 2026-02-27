@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { uploadSessions, skus, pinCodes, salesHistory } from "@/lib/db/schema";
-import { eq, and, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export async function POST() {
@@ -27,7 +27,7 @@ export async function POST() {
     startDate.setDate(startDate.getDate() - 180);
     const days = 180;
 
-    const [session] = await db
+    await db
       .insert(uploadSessions)
       .values({
         sessionId,
