@@ -80,3 +80,53 @@ export const REGIONS = [
 ] as const;
 
 export type Region = typeof REGIONS[number];
+
+export interface ForecastPrediction {
+  sku_id: string;
+  sku_name: string;
+  pin_code: string;
+  area_name: string;
+  predicted_demand: number;
+  confidence: number;
+  trend: 'increasing' | 'stable' | 'decreasing';
+  change_percent: number;
+}
+
+export interface RestockAlert {
+  sku_id: string;
+  sku_name: string;
+  pin_code: string;
+  current_stock: number;
+  reorder_point: number;
+  recommended_units: number;
+  urgency: 'high' | 'medium' | 'low';
+  days_until_stockout: number;
+}
+
+export interface TrendAnalysis {
+  direction: 'up' | 'stable' | 'down';
+  change_percent: number;
+  description: string;
+}
+
+export interface ForecastSummary {
+  total_predictions: number;
+  high_urgency_alerts: number;
+  avg_confidence: number;
+  top_growing_skus: { sku_id: string; change: number }[];
+}
+
+export interface ForecastPeriod {
+  start: string;
+  end: string;
+  days: number;
+}
+
+export interface ForecastData {
+  generated_at: string;
+  period: ForecastPeriod;
+  predictions: ForecastPrediction[];
+  restock_alerts: RestockAlert[];
+  trends: Record<string, TrendAnalysis>;
+  summary: ForecastSummary;
+}
