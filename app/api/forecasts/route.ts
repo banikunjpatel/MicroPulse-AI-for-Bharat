@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const inputData = await getForecastInputData();
 
     if (!ai.isEnabled() || forceMock) {
+      console.log('[Forecasts] OpenRouter is disabled, returning mock data');
       return NextResponse.json({
         success: true,
         data: mockForecastData,
@@ -37,15 +38,37 @@ PIN Codes Coverage:
 ${inputData.pin_codes.map(p => `- ${p.pinCode}: ${p.areaName}, ${p.region}`).join('\n')}
     `.trim();
 
+    const userMessage = `Based on the following data, generate demand forecasts for the next 30 days. ${dataSummary}`;
+
+    console.log('[Forecasts] Sending request to OpenRouter...');
+    console.log('[Forecasts] Model:', ai.getModel());
+    console.log('[Forecasts] Input data:', {
+      salesHistoryCount: inputData.sales_history.length,
+      skuCount: inputData.skus.length,
+      pinCodeCount: inputData.pin_codes.length,
+      inventoryCount: inputData.inventory.length,
+    });
+
+    const llmRequest = {
+      model: ai.getModel(),
+      systemPromptLength: systemPrompt.length,
+      userMessageLength: userMessage.length,
+    };
+    console.log('[Forecasts] LLM Request:', JSON.stringify(llmRequest, null, 2));
+
     const response = await ai.chat({
       systemPrompt,
       messages: [
         {
           role: 'user',
-          content: `Based on the following data, generate demand forecasts for the next 30 days. ${dataSummary}`,
+          content: userMessage,
         },
       ],
     });
+
+    console.log('[Forecasts] LLM Response received');
+    console.log('[Forecasts] Response length:', response.content.length);
+    console.log('[Forecasts] Usage:', response.usage);
 
     let forecastData: ForecastData;
 
@@ -53,11 +76,13 @@ ${inputData.pin_codes.map(p => `- ${p.pinCode}: ${p.areaName}, ${p.region}`).joi
       const jsonMatch = response.content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         forecastData = JSON.parse(jsonMatch[0]);
+        console.log('[Forecasts] Successfully parsed JSON from LLM response');
+        console.log('[Forecasts] Forecast data:', JSON.stringify(forecastData, null, 2));
       } else {
         throw new Error('No JSON found in response');
       }
     } catch (parseError) {
-      console.error('Failed to parse LLM response as JSON:', response.content);
+      console.error('[Forecasts] Failed to parse LLM response as JSON:', response.content);
       return NextResponse.json({
         success: true,
         data: mockForecastData,
@@ -66,13 +91,14 @@ ${inputData.pin_codes.map(p => `- ${p.pinCode}: ${p.areaName}, ${p.region}`).joi
       });
     }
 
+    console.log('[Forecasts] Forecast generated successfully');
     return NextResponse.json({
       success: true,
       data: forecastData,
       source: 'llm',
     });
   } catch (error) {
-    console.error('Forecasts API error:', error);
+    console.error('[Forecasts] API Error:', error);
     return NextResponse.json(
       {
         success: false,

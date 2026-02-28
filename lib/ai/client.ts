@@ -34,6 +34,7 @@ class AIClient {
 
   async chat(options: ChatOptions): Promise<ChatResponse> {
     if (!this.enabled || !this.client) {
+      console.log('[AI Client] OpenRouter is disabled, returning mock response');
       return {
         content: MOCK_RESPONSE,
         usage: undefined,
@@ -49,14 +50,25 @@ class AIClient {
 
     messages.push(...options.messages);
 
+    console.log('[AI Client] Sending chat request to OpenRouter');
+    console.log('[AI Client] Model:', model);
+    console.log('[AI Client] Message count:', messages.length);
+    console.log('[AI Client] System prompt length:', options.systemPrompt?.length || 0);
+
     try {
       const result = this.client.callModel({
         model,
         input: messages,
       });
 
+      console.log('[AI Client] Waiting for response...');
+
       const content = await result.getText();
       const response = await result.getResponse();
+
+      console.log('[AI Client] Response received');
+      console.log('[AI Client] Response content length:', content.length);
+      console.log('[AI Client] Usage:', response.usage);
 
       return {
         content,
@@ -69,7 +81,7 @@ class AIClient {
           : undefined,
       };
     } catch (error) {
-      console.error('OpenRouter chat error:', error);
+      console.error('[AI Client] OpenRouter chat error:', error);
       throw error;
     }
   }
