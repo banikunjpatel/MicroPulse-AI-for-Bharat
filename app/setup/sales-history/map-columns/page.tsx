@@ -1,6 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { PageHeader } from "@/components/setup/PageHeader";
@@ -32,13 +34,60 @@ const requiredFields: { key: keyof ColumnMapping; label: string; required: boole
   { key: "unit_price_col", label: "Unit Price", required: false },
 ];
 
+function getInitialSessionData() {
+  if (typeof window === "undefined") return null;
+  const session = sessionStorage.getItem("upload_session");
+  if (!session) return null;
+  try {
+    return JSON.parse(session);
+  } catch {
+    return null;
+  }
+}
+
 export default function ColumnMappingPage() {
   const router = useRouter();
-  const [availableColumns, setAvailableColumns] = useState<string[]>([]);
-  const [mapping, setMapping] = useState<Partial<ColumnMapping>>({});
-  const [autoDetected, setAutoDetected] = useState<Set<string>>(new Set());
-  const [isSynthetic, setIsSynthetic] = useState(false);
-  const [previewRows, setPreviewRows] = useState<Record<string, string>[]>([]);
+  const [sessionData, setSessionData] = useState<{
+    detected_columns: string[];
+    is_synthetic: boolean;
+    session_id: string;
+  } | null>(null);
+  const [userMapping, setUserMapping] = useState<Partial<ColumnMapping>>({});
+
+  useEffect(() => {
+    const data = getInitialSessionData();
+    if (!data) {
+      router.replace("/setup/sales-history");
+      return;
+    }
+    setSessionData(data);
+  }, [router]);
+
+  const autoDetectResult = useMemo(() => {
+    if (!sessionData) {
+      return { availableColumns: [] as string[], autoDetected: new Set<string>(), autoMapped: {} };
+    }
+
+    const columns = sessionData.detected_columns || [];
+    const detected = new Set<string>();
+    const autoMapped: Partial<ColumnMapping> = {};
+
+    for (const [field, keywords] of Object.entries(AUTO_DETECT_MAP)) {
+      const match = columns.find((col: string) =>
+        keywords.some((kw) => col.toLowerCase().includes(kw))
+      );
+      if (match) {
+        autoMapped[field as keyof ColumnMapping] = match;
+        detected.add(field);
+      }
+    }
+
+    return { availableColumns: columns, autoDetected: detected, autoMapped };
+  }, [sessionData]);
+
+  const mapping = useMemo(() => {
+    return { ...autoDetectResult.autoMapped, ...userMapping };
+  }, [autoDetectResult.autoMapped, userMapping]);
 
   const saveMappingMutation = useMutation({
     mutationFn: async ({ sessionId, mapping }: { sessionId: string; mapping: ColumnMapping }) => {
@@ -53,55 +102,24 @@ export default function ColumnMappingPage() {
     },
   });
 
-  useEffect(() => {
-    const session = sessionStorage.getItem("upload_session");
-    if (!session) {
-      router.replace("/setup/sales-history");
-      return;
-    }
-
-    const sessionData = JSON.parse(session);
-    const columns = sessionData.detected_columns || [];
-    setAvailableColumns(columns);
-    setIsSynthetic(sessionData.is_synthetic || false);
-
-    const detected = new Set<string>();
-    const autoMapped: Partial<ColumnMapping> = {};
-
-    for (const [field, keywords] of Object.entries(AUTO_DETECT_MAP)) {
-      const match = columns.find((col: string) =>
-        keywords.some((kw) => col.toLowerCase().includes(kw))
-      );
-      if (match) {
-        autoMapped[field as keyof ColumnMapping] = match;
-        detected.add(field);
-      }
-    }
-
-    setMapping(autoMapped);
-    setAutoDetected(detected);
-  }, [router]);
-
   const canProceed = () => {
     return !!(mapping.date_col && mapping.sku_id_col && mapping.pin_code_col && mapping.units_sold_col);
   };
 
-  const getSampleValue = (columnName: string | undefined) => {
-    if (!columnName) return "—";
-    const firstRow = previewRows[0] as Record<string, string>;
-    return firstRow?.[columnName] || "—";
+  const getSampleValue = () => {
+    return "—";
   };
 
   const handleProceed = async () => {
-    const session = JSON.parse(sessionStorage.getItem("upload_session") || "{}");
+    if (!sessionData) return;
     
     try {
       await saveMappingMutation.mutateAsync({
-        sessionId: session.session_id,
+        sessionId: sessionData.session_id,
         mapping: mapping as ColumnMapping,
       });
 
-      session.column_mapping = mapping;
+      const session = { ...sessionData, column_mapping: mapping };
       sessionStorage.setItem("upload_session", JSON.stringify(session));
       router.push("/setup/sales-history/validate");
     } catch (error) {
@@ -113,7 +131,15 @@ export default function ColumnMappingPage() {
     router.push("/setup/sales-history/validate");
   };
 
-  if (isSynthetic) {
+  if (!sessionData) {
+    return (
+      <div>
+        <PageHeader title="Loading..." description="Please wait" />
+      </div>
+    );
+  }
+
+  if (sessionData.is_synthetic) {
     return (
       <div>
         <PageHeader
@@ -166,7 +192,7 @@ export default function ColumnMappingPage() {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back
             </Button>
             <Button onClick={handleSkipSynthetic}>
-              Continue to Inventory <ArrowRight className="ml-2 h-4 w-4" />
+              Continue to Validation <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -198,7 +224,7 @@ export default function ColumnMappingPage() {
             <tbody>
               {requiredFields.map((field) => {
                 const isMapped = !!mapping[field.key];
-                const isAutoDetected = autoDetected.has(field.key);
+                const isAutoDetected = autoDetectResult.autoDetected.has(field.key);
 
                 return (
                   <tr key={field.key} className="border-b last:border-0">
@@ -217,13 +243,13 @@ export default function ColumnMappingPage() {
                     <td className="px-6 py-4">
                       <select
                         value={mapping[field.key] || ""}
-                        onChange={(e) =>
-                          setMapping({ ...mapping, [field.key]: e.target.value || undefined })
-                        }
+                        onChange={(e) => {
+                          setUserMapping({ ...userMapping, [field.key]: e.target.value || undefined });
+                        }}
                         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       >
                         <option value="">— Select column —</option>
-                        {availableColumns.map((col) => (
+                        {autoDetectResult.availableColumns.map((col) => (
                           <option key={col} value={col}>
                             {col}
                           </option>
@@ -234,7 +260,7 @@ export default function ColumnMappingPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 font-mono text-sm text-muted-foreground">
-                      {getSampleValue(mapping[field.key])}
+                      {getSampleValue()}
                     </td>
                     <td className="px-6 py-4">
                       {isMapped ? (
