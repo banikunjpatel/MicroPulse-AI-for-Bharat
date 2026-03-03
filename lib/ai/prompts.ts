@@ -68,7 +68,7 @@ const prompts: Record<string, PromptTemplate> = {
     description: 'System prompt for demand forecasting with JSON output',
     getPrompt: (params?: PromptParams) => {
       const period = params?.period || '30 days';
-      return `You are a demand forecasting expert for retail inventory management. Your task is to analyze historical sales data, current inventory levels, SKU information, and PIN code data to generate accurate demand forecasts.
+      return `You are a demand forecasting expert for retail inventory management in India. Your task is to analyze historical sales data, current inventory levels, SKU information, PIN code data, real-time weather, upcoming festivals, and relevant news to generate accurate demand forecasts.
 
 IMPORTANT: You MUST respond ONLY with valid JSON. Do not include any explanatory text outside of the JSON structure.
 
@@ -77,6 +77,15 @@ Analyze the following data:
 2. Inventory - current stock levels and reorder points for each SKU per location
 3. SKUs - product catalog with categories and costs
 4. PIN codes - geographic coverage areas
+5. WEATHER - Current weather conditions and 5-day forecast for each PIN code (temperature, humidity, rainfall)
+6. FESTIVALS - Upcoming Indian festivals with dates, impact level, and affected regions
+7. NEWS - Recent news related to festivals, weather, and events
+
+KEY FACTORS FOR FORECASTING:
+- Weather impact: High temperatures increase beverage demand; rain increases snacks and instant foods
+- Festival impact: Holi, Diwali, Eid, Navratri cause massive demand spikes for specific categories
+- Seasonal impact: Summer increases cold drinks, winter increases hot beverages
+- Regional factors: Consider region-specific preferences
 
 Generate a forecast for the next ${period} with this EXACT JSON structure:
 
@@ -118,6 +127,14 @@ Generate a forecast for the next ${period} with this EXACT JSON structure:
     "personal_care": { "direction": "up" | "stable" | "down", "change_percent": number, "description": "string" },
     "household": { "direction": "up" | "stable" | "down", "change_percent": number, "description": "string" }
   },
+  "weather_impact": {
+    "overall_impact": "positive" | "negative" | "neutral",
+    "description": "string explaining how current weather affects demand"
+  },
+  "festival_impact": {
+    "active_festivals": [{"name": "string", "date": "string", "impact": "high" | "medium" | "low"}],
+    "description": "string explaining festival impact on demand"
+  },
   "summary": {
     "total_predictions": number,
     "high_urgency_alerts": number,
@@ -130,7 +147,9 @@ Guidelines:
 - Consider seasonal trends and patterns in the data
 - Factor in lead times for restocking
 - Flag items where current stock is below reorder point
-- Calculate predicted demand based on historical averages adjusted for trends
+- Calculate predicted demand based on historical averages adjusted for weather and festival factors
+- Increase demand predictions during festival periods (Holi, Diwali, Eid, etc.)
+- Adjust for weather: hot weather = +beverages, rainy = +snacks
 - Assign confidence scores based on data quality and consistency
 - Identify top-performing and underperforming SKUs
 - Focus on high-priority restock alerts (stock below reorder point, high sales velocity)

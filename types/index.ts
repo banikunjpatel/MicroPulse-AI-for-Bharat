@@ -116,6 +116,16 @@ export interface ForecastSummary {
   top_growing_skus: { sku_id: string; change: number }[];
 }
 
+export interface WeatherImpact {
+  overall_impact: 'positive' | 'negative' | 'neutral';
+  description: string;
+}
+
+export interface FestivalImpact {
+  active_festivals: { name: string; date: string; impact: 'high' | 'medium' | 'low' }[];
+  description: string;
+}
+
 export interface ForecastPeriod {
   start: string;
   end: string;
@@ -128,5 +138,7 @@ export interface ForecastData {
   predictions: ForecastPrediction[];
   restock_alerts: RestockAlert[];
   trends: Record<string, TrendAnalysis>;
+  weather_impact?: WeatherImpact;
+  festival_impact?: FestivalImpact;
   summary: ForecastSummary;
 }
