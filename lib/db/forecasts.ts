@@ -1,5 +1,5 @@
 import { db } from '@/lib/db';
-import { salesHistory, inventory, skus, pinCodes } from '@/lib/db/schema';
+import { salesHistory, inventory, skus, pinCodes, forecasts } from '@/lib/db/schema';
 import { desc, eq, sql, and, gte, lte } from 'drizzle-orm';
 
 export interface SalesData {
@@ -145,3 +145,49 @@ export async function getForecastInputData(): Promise<ForecastInputData> {
     pin_codes,
   };
 }
+export async function saveForecast(
+  forecastData: any,
+  userId?: string
+): Promise<{ id: number; generatedAt: Date }> {
+  const result = await db
+    .insert(forecasts)
+    .values({
+      forecastData: JSON.stringify(forecastData),
+      userId: userId || null,
+    })
+    .returning({ id: forecasts.id, generatedAt: forecasts.generatedAt });
+
+  return result[0];
+}
+
+export async function getLatestForecast(userId?: string): Promise<{
+  id: number;
+  forecastData: any;
+  generatedAt: Date;
+} | null> {
+  const query = db
+    .select({
+      id: forecasts.id,
+      forecastData: forecasts.forecastData,
+      generatedAt: forecasts.generatedAt,
+    })
+    .from(forecasts)
+    .orderBy(desc(forecasts.generatedAt))
+    .limit(1);
+
+  if (userId) {
+    query.where(eq(forecasts.userId, userId));
+  }
+
+  const results = await query;
+
+  if (results.length === 0) {
+    return null;
+  }
+
+  return {
+    ...results[0],
+    forecastData: JSON.parse(results[0].forecastData),
+  };
+}
+

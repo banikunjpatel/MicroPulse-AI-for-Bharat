@@ -25,29 +25,52 @@ interface ForecastsContentProps {
 export default function ForecastsContent({ user }: ForecastsContentProps) {
   const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
 
-  const fetchForecasts = async () => {
+  const fetchLatestForecast = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("/api/forecasts");
+      const response = await fetch("/api/forecasts/latest");
       const result = await response.json();
-      
+
       if (result.success) {
         setForecastData(result.data);
+        setGeneratedAt(result.generated_at);
       } else {
-        setError(result.error?.message || "Failed to fetch forecasts");
+        setError(result.error?.message || "You can start by Generating your first forecast.");
       }
     } catch (err) {
-      setError("Failed to fetch forecasts");
+      setError("Failed to fetch latest forecast");
     } finally {
       setLoading(false);
     }
   };
 
+  const generateNewForecast = async () => {
+    try {
+      setGenerating(true);
+      setError(null);
+      const response = await fetch("/api/forecasts");
+      const result = await response.json();
+
+      if (result.success) {
+        setForecastData(result.data);
+        setGeneratedAt(new Date().toISOString());
+      } else {
+        setError(result.error?.message || "Failed to generate forecast");
+      }
+    } catch (err) {
+      setError("Failed to generate forecast");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   useEffect(() => {
-    fetchForecasts();
+    fetchLatestForecast();
   }, []);
 
   const getTrendIcon = (direction: string) => {
@@ -83,6 +106,14 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
     return colors[category] || "bg-gray-100 text-gray-700";
   };
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-IN', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex">
       <DashboardSidebar />
@@ -96,46 +127,74 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
                 <p className="text-muted-foreground mt-1">
                   AI-powered demand predictions and inventory recommendations
                 </p>
+                {generatedAt && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Last generated: {formatDateTime(generatedAt)}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-3">
-                <Badge variant="outline" className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {forecastData?.period.start} - {forecastData?.period.end}
-                </Badge>
+                {forecastData && (
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    {forecastData.period.start} - {forecastData.period.end}
+                  </Badge>
+                )}
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={fetchForecasts}
-                  disabled={loading}
+                  onClick={fetchLatestForecast}
+                  disabled={loading || generating}
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
                   Refresh
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={generateNewForecast}
+                  disabled={loading || generating}
+                  className="bg-cyan-600 hover:bg-cyan-700"
+                >
+                  <BarChart3 className={`w-4 h-4 mr-2 ${generating ? "animate-pulse" : ""}`} />
+                  {generating ? "Generating..." : "Generate New Forecast"}
                 </Button>
               </div>
             </div>
           </div>
 
-          {loading && (
+          {(loading || generating) && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
                 <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-cyan-600" />
-                <p className="text-muted-foreground">Generating forecasts...</p>
+                <p className="text-muted-foreground">
+                  {generating ? "Generating new forecast..." : "Loading forecast..."}
+                </p>
               </div>
             </div>
           )}
 
-          {error && (
-            <Card className="border-red-200 bg-red-50 mb-6">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-red-700">
+          {error && !loading && !generating && (
+            <Card className="border-blue-200 bg-blue-50 mb-6">
+              <CardContent className="pt-0">
+                <div className="flex items-center gap-2 text-cyan-700 mb-4">
                   <AlertTriangle className="w-5 h-5" />
                   <p>{error}</p>
                 </div>
+                {error.includes("No forecasts available") && (
+                  <Button 
+                    onClick={generateNewForecast}
+                    disabled={generating}
+                    className="bg-cyan-600 hover:bg-cyan-700"
+                  >
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Generate First Forecast
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}
 
-          {forecastData && !loading && (
+          {forecastData && !loading && !generating && (
             <>
               {/* Summary Cards */}
               <div className="grid gap-4 md:grid-cols-4 mb-8">

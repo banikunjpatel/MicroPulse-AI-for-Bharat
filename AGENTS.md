@@ -1,7 +1,8 @@
 # Monorepo Project
 
 # Always use PNPM package manager
-
+- It's a Next.js project with App router
+- 
 ## Agent Instructions
 - Always read requirements.md file before starting any new feature.
 - Always read AGENTS.md file before starting any new feature.
@@ -25,7 +26,6 @@
 - Always create Playwright E2E tests for all newely created features
 - Follow DRY(Don't repeat yourself) concept. Write re-usable functions and libraries.
 - Always divide code into smaller components and functions.
-- Always use better-auth for authentication.
 
 
 ## Project Structure

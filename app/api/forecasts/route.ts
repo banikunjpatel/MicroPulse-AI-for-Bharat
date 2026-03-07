@@ -3,6 +3,7 @@ import { getEnrichedForecastData, formatWeatherForLLM, formatFestivalsForLLM, fo
 import { ai, getPrompt } from '@/lib/ai';
 import type { ForecastData } from '@/types';
 import { mockForecastData } from '@/lib/mock-data/forecasts';
+import { saveForecast } from '@/lib/db/forecasts';
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,6 +26,10 @@ export async function GET(request: NextRequest) {
 
     if (!ai.isEnabled() || forceMock) {
       console.log('[Forecasts] OpenRouter is disabled, returning mock data');
+      
+      // Save mock forecast to database
+      await saveForecast(mockForecastData);
+      
       return NextResponse.json({
         success: true,
         data: mockForecastData,
@@ -93,6 +98,10 @@ ${formatNewsForLLM(enrichedData.news)}
       }
     } catch (parseError) {
       console.error('[Forecasts] Failed to parse LLM response as JSON:', response.content.substring(0, 500));
+      
+      // Save fallback forecast to database
+      await saveForecast(mockForecastData);
+      
       return NextResponse.json({
         success: true,
         data: mockForecastData,
@@ -102,10 +111,16 @@ ${formatNewsForLLM(enrichedData.news)}
     }
 
     console.log('[Forecasts] Forecast generated successfully');
+    
+    // Save forecast to database
+    const savedForecast = await saveForecast(forecastData);
+    console.log('[Forecasts] Saved to database with ID:', savedForecast.id);
+    
     return NextResponse.json({
       success: true,
       data: forecastData,
       source: 'llm',
+      forecast_id: savedForecast.id,
       data_sources: {
         weather: enrichedData.weather.length > 0,
         festivals: enrichedData.festivals.festivals.length > 0,

@@ -36,6 +36,13 @@
       "when": 1772166853835,
       "tag": "0004_shallow_ultimates",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772717592572,
+      "tag": "0005_friendly_machine_man",
+      "breakpoints": true
     }
   ]
 }

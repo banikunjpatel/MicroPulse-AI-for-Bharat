@@ -173,6 +173,21 @@ export const verification = pgTable(
   },
   (table) => [index("verification_identifier_idx").on(table.identifier)]
 );
+export const forecasts = pgTable(
+  "forecasts",
+  {
+    id: serial("id").primaryKey(),
+    forecastData: text("forecast_data").notNull(), // JSON stringified ForecastData
+    generatedAt: timestamp("generated_at").defaultNow().notNull(),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("forecasts_generated_at_idx").on(table.generatedAt),
+    index("forecasts_user_id_idx").on(table.userId),
+  ]
+);
+
 
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
