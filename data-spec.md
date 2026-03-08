@@ -1464,7 +1464,7 @@ NEXT_PUBLIC_API_BASE_URL=https://xxxxx.execute-api.ap-south-1.amazonaws.com/prod
 API_GATEWAY_KEY=your-api-key-here
 
 # AWS Region
-AWS_REGION=ap-south-1
+AW_REGION=ap-south-1
 
 # Used only if you call AWS SDK directly from Route Handlers (not recommended; prefer Lambda)
 AWS_ACCESS_KEY_ID=

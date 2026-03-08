@@ -6,14 +6,14 @@ import path from "path";
 const S3_ENABLED = process.env.S3_ENABLED === "true";
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads/sales";
 const S3_BUCKET_NAME = process.env.S3_BUCKET_NAME || "micropulse-data-lake";
-const AWS_REGION = process.env.AWS_REGION || "ap-south-1";
+const AW_REGION = process.env.AW_REGION || "ap-south-1";
 
 let s3Client: S3Client | null = null;
 
 function getS3Client(): S3Client {
   if (!s3Client) {
     s3Client = new S3Client({
-      region: AWS_REGION,
+      region: AW_REGION,
       credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
         ? {
             accessKeyId: process.env.AWS_ACCESS_KEY_ID,

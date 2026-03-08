@@ -34,18 +34,18 @@ You can use either a bearer token (Bedrock API Key) or AWS access keys:
 **Option 1: Bearer Token (Simpler)**
 ```bash
 LLM_PROVIDER=bedrock
-AWS_BEDROCK_REGION=us-east-1
-AWS_BEARER_TOKEN_BEDROCK=your-bedrock-api-key
-AWS_BEDROCK_MODEL=amazon.nova-lite-v1:0
+AW_BEDROCK_REGION=us-east-1
+AW_BEARER_TOKEN_BEDROCK=your-bedrock-api-key
+AW_BEDROCK_MODEL=amazon.nova-lite-v1:0
 ```
 
 **Option 2: Access Keys**
 ```bash
 LLM_PROVIDER=bedrock
-AWS_BEDROCK_REGION=us-east-1
+AW_BEDROCK_REGION=us-east-1
 AWS_BEDROCK_ACCESS_KEY_ID=your-access-key-id
 AWS_BEDROCK_SECRET_ACCESS_KEY=your-secret-access-key
-AWS_BEDROCK_MODEL=amazon.nova-lite-v1:0
+AW_BEDROCK_MODEL=amazon.nova-lite-v1:0
 ```
 
 ### Mock Mode (No API Calls)

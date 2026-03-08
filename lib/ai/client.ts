@@ -50,11 +50,11 @@ class AIClient {
   }
 
   private initializeBedrock(): void {
-    const region = process.env.AWS_BEDROCK_REGION || 'us-east-1';
-    const bearerToken = process.env.AWS_BEARER_TOKEN_BEDROCK;
+    const region = process.env.AW_BEDROCK_REGION || 'us-east-1';
+    const bearerToken = process.env.AW_BEARER_TOKEN_BEDROCK;
     const accessKeyId = process.env.AWS_BEDROCK_ACCESS_KEY_ID;
     const secretAccessKey = process.env.AWS_BEDROCK_SECRET_ACCESS_KEY;
-    this.model = process.env.AWS_BEDROCK_MODEL || DEFAULT_BEDROCK_MODEL;
+    this.model = process.env.AW_BEDROCK_MODEL || DEFAULT_BEDROCK_MODEL;
 
     try {
       // Support both bearer token and access key authentication
