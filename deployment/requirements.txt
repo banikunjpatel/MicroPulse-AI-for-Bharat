@@ -1,0 +1,28 @@
+# MicroPulse Backend - AWS Lambda Dependencies
+
+# FastAPI and ASGI server
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.5.3
+
+# AWS Lambda adapter
+mangum>=0.17.0
+
+# AWS SDK
+boto3>=1.34.0
+botocore>=1.34.0
+
+# Data processing
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Time series forecasting
+prophet>=1.1.5
+cmdstanpy>=1.2.0
+
+# Utilities
+python-dateutil>=2.8.2
+pytz>=2023.3
+
+# Optional: For better performance
+orjson>=3.9.0
