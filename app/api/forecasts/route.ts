@@ -9,8 +9,10 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const forceMock = searchParams.get('mock') === 'true';
+    const days = parseInt(searchParams.get('days') || '30', 10);
 
     console.log('[Forecasts] Starting forecast generation...');
+    console.log('[Forecasts] Forecast period:', days, 'days');
 
     const enrichedData = await getEnrichedForecastData();
 
@@ -42,7 +44,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const systemPrompt = getPrompt('forecasts', { period: '30 days' });
+    const systemPrompt = getPrompt('forecasts', { period: `${days} days` });
 
     const dataSummary = `
 SALES HISTORY (Last 90 days):
@@ -66,7 +68,7 @@ ${formatFestivalsForLLM(enrichedData.festivals)}
 ${formatNewsForLLM(enrichedData.news)}
     `.trim();
 
-    const userMessage = `Based on the following comprehensive data (sales history, inventory, weather, festivals, and news), generate accurate demand forecasts for the next 30 days. Factor in weather conditions and upcoming festivals for accurate predictions.`;
+    const userMessage = `Based on the following comprehensive data (sales history, inventory, weather, festivals, and news), generate accurate demand forecasts for the next ${days} days. Factor in weather conditions and upcoming festivals for accurate predictions. Also specify which techniques have you used to make the forecast.`;
 
     console.log('[Forecasts] Sending request to OpenRouter...');
     console.log('[Forecasts] Model:', ai.getModel());

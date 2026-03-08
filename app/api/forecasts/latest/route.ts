@@ -25,11 +25,24 @@ export async function GET(request: NextRequest) {
       generatedAt: latestForecast.generatedAt,
     });
 
+    // The DB timestamp is in IST but JS Date treats it as UTC
+    // We need to format it as IST without timezone conversion
+    const dbDate = latestForecast.generatedAt;
+    const year = dbDate.getUTCFullYear();
+    const month = String(dbDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(dbDate.getUTCDate()).padStart(2, '0');
+    const hours = String(dbDate.getUTCHours()).padStart(2, '0');
+    const minutes = String(dbDate.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(dbDate.getUTCSeconds()).padStart(2, '0');
+    
+    // Format as ISO-like string but treat the UTC values as IST
+    const generatedAtIST = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}+05:30`;
+
     return NextResponse.json({
       success: true,
       data: latestForecast.forecastData,
       forecast_id: latestForecast.id,
-      generated_at: latestForecast.generatedAt,
+      generated_at: generatedAtIST,
     });
   } catch (error) {
     console.error('[Forecasts] API Error:', error);

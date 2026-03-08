@@ -141,4 +141,5 @@ export interface ForecastData {
   weather_impact?: WeatherImpact;
   festival_impact?: FestivalImpact;
   summary: ForecastSummary;
+  forecast_technique: string;
 }

@@ -5,6 +5,13 @@ import DashboardSidebar from "@/components/dashboard-sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -28,6 +35,7 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+  const [forecastDays, setForecastDays] = useState<string>("30");
 
   const fetchLatestForecast = async () => {
     try {
@@ -53,7 +61,7 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
     try {
       setGenerating(true);
       setError(null);
-      const response = await fetch("/api/forecasts");
+      const response = await fetch(`/api/forecasts?days=${forecastDays}`);
       const result = await response.json();
 
       if (result.success) {
@@ -107,6 +115,7 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
   };
 
   const formatDateTime = (dateString: string) => {
+    // Parse the date string which is in IST format
     const date = new Date(dateString);
     return date.toLocaleString('en-IN', {
       dateStyle: 'medium',
@@ -140,6 +149,16 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
                     {forecastData.period.start} - {forecastData.period.end}
                   </Badge>
                 )}
+                <Select value={forecastDays} onValueChange={setForecastDays}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Select days" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">7 days</SelectItem>
+                    <SelectItem value="14">14 days</SelectItem>
+                    <SelectItem value="30">30 days</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button 
                   variant="outline" 
                   size="sm" 

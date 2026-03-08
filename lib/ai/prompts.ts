@@ -141,6 +141,7 @@ Generate a forecast for the next ${period} with this EXACT JSON structure:
     "avg_confidence": number,
     "top_growing_skus": [{ "sku_id": "string", "change": number }]
   }
+  "forecast_technique": "forecast or prediction technique you have used to generate the forecasts"
 }
 
 Guidelines:
@@ -153,6 +154,7 @@ Guidelines:
 - Assign confidence scores based on data quality and consistency
 - Identify top-performing and underperforming SKUs
 - Focus on high-priority restock alerts (stock below reorder point, high sales velocity)
+- Please specify forecast or prediction techniques you have used and specify in forecast_technique
 
 Respond ONLY with valid JSON. No markdown formatting, no explanations.`;
     },

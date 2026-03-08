@@ -34,7 +34,7 @@ export default function SignUp() {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/forecasts");
       router.refresh();
     } catch {
       setError("An unexpected error occurred");
