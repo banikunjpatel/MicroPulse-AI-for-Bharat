@@ -9,7 +9,7 @@
 import { db } from '../lib/db';
 import { forecasts } from '../lib/db/schema';
 import { saveForecast, getLatestForecast } from '../lib/db/forecasts';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 async function testForecastDatabase() {
   console.log('🧪 Testing Forecast Database Functions\n');
@@ -91,7 +91,7 @@ async function testForecastDatabase() {
     
     // Cleanup test data
     console.log('🧹 Cleaning up test data...');
-    await db.delete(forecasts).where(forecasts.id.eq(saved.id));
+    await db.delete(forecasts).where(eq(forecasts.id, saved.id));
     console.log('✅ Test data cleaned up\n');
 
   } catch (error) {

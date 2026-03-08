@@ -2,6 +2,7 @@ import type { ForecastData, ForecastPrediction, RestockAlert, TrendAnalysis } fr
 
 export const mockForecastData: ForecastData = {
   generated_at: new Date().toISOString(),
+  forecast_technique: 'Time series analysis with seasonal decomposition (STL) and gradient boosting ensemble',
   period: {
     start: '2026-03-01',
     end: '2026-03-31',

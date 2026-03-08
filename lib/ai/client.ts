@@ -149,12 +149,16 @@ class AIClient {
     console.log('[AI Client] Message count:', messages.length);
 
     try {
-      const result = this.openRouterClient.callModel({
+      const callOptions: {
+        model: string;
+        input: typeof messages;
+        temperature?: number;
+      } = {
         model,
         input: messages,
         temperature: options.temperature,
-        maxTokens: options.maxTokens,
-      });
+      };
+      const result = this.openRouterClient.callModel(callOptions);
 
       const content = await result.getText();
       const response = await result.getResponse();
