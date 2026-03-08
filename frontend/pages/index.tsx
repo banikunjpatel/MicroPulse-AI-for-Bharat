@@ -38,8 +38,8 @@ export default function Home() {
       
       if (data.combinations && data.combinations.length > 0) {
         // Extract unique SKUs and PINs
-        const skus = [...new Set(data.combinations.map((c: any) => c.sku_id))];
-        const pins = [...new Set(data.combinations.map((c: any) => c.pin_code.toString()))];
+        const skus = Array.from(new Set(data.combinations.map((c: any) => c.sku_id))) as string[];
+        const pins = Array.from(new Set(data.combinations.map((c: any) => c.pin_code.toString()))) as string[];
         
         setSkuOptions(skus);
         setPinOptions(pins);
