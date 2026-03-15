@@ -46,14 +46,47 @@ export async function GET(request: NextRequest) {
 
     const systemPrompt = getPrompt('forecasts', { period: `${days} days` });
 
+    // Group raw sales history by SKU + pin_code for compact but detailed LLM input
+    const salesBySkuPin = enrichedData.sales_history.reduce<
+      Record<string, { sku_name: string; category: string; area_name: string; region: string; entries: { date: string; units: number }[] }>
+    >((acc, row) => {
+      const key = `${row.sku_id}__${row.pin_code}`;
+      if (!acc[key]) {
+        acc[key] = {
+          sku_name: row.sku_name,
+          category: row.category,
+          area_name: row.area_name,
+          region: row.region,
+          entries: [],
+        };
+      }
+      acc[key].entries.push({
+        date: row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date),
+        units: row.units_sold,
+      });
+      return acc;
+    }, {});
+
+    const salesHistoryDetail = Object.entries(salesBySkuPin)
+      .slice(0, 50) // cap to avoid token overflow
+      .map(([key, val]) => {
+        const [sku_id, pin_code] = key.split('__');
+        const recentEntries = val.entries.slice(0, 30); // last 30 data points per SKU/pin
+        return `SKU: ${val.sku_name} (${val.category}) | PIN: ${pin_code} (${val.area_name}, ${val.region})\n  Sales: ${recentEntries.map(e => `${e.date}:${e.units}`).join(', ')}`;
+      })
+      .join('\n');
+
     const dataSummary = `
 SALES HISTORY (Last 90 days):
 - Total records: ${enrichedData.sales_history.length}
 - Unique SKUs: ${enrichedData.skus.length}
 - Unique PIN codes: ${enrichedData.pin_codes.length}
 
-TOP SKUs BY SALES:
-${enrichedData.aggregated_sales.slice(0, 10).map(s => `- ${s.sku_name} (${s.category}): ${Number(s.total_units_sold)} units over ${Number(s.days_active)} days`).join('\n')}
+DETAILED SALES DATA (per SKU per PIN code, date:units_sold):
+${salesHistoryDetail}
+
+TOP SKUs BY SALES (aggregated):
+${enrichedData.aggregated_sales.slice(0, 10).map(s => `- ${s.sku_name} (${s.category}): ${Number(s.total_units_sold)} units over ${Number(s.days_active)} days, avg ${Number(s.avg_daily_sales).toFixed(1)}/day`).join('\n')}
 
 CURRENT INVENTORY:
 ${enrichedData.inventory.slice(0, 10).map(i => `- ${i.sku_name} @ ${i.pin_code}: ${i.stock_on_hand} units (reorder at ${i.reorder_point})`).join('\n')}

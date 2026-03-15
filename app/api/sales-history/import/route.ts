@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { uploadSessions, salesHistory, skus, pinCodes } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { getFile } from "@/lib/storage";
 import { parseDate } from "@/lib/date-utils";
+
+interface ApprovedSku {
+  sku_id: string;
+  name: string;
+  category: "beverages" | "snacks" | "dairy" | "personal_care" | "household" | "other";
+  unit_cost_paise: number;
+  lead_time_days: number;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { session_id } = body;
+    const { session_id, approved_skus } = body as { session_id: string; approved_skus?: ApprovedSku[] };
 
     if (!session_id) {
       return NextResponse.json(
@@ -50,7 +58,45 @@ export async function POST(request: NextRequest) {
 
     const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
 
-    // Fetch existing SKUs
+    // Maps CSV SKU ID → DB SKU ID (may differ if CSV ID was already taken)
+    const csvSkuIdToDbId = new Map<string, string>();
+
+    // Create approved new SKUs before importing
+    if (approved_skus && approved_skus.length > 0) {
+      const existingForCheck = await db.select({ id: skus.id }).from(skus).orderBy(desc(skus.id));
+      let nextNum = 1;
+      if (existingForCheck.length > 0) {
+        const match = existingForCheck[0].id.match(/SKU-(\d+)/);
+        if (match) nextNum = parseInt(match[1], 10) + 1;
+      }
+      const existingIds = new Set(existingForCheck.map((s) => s.id));
+
+      const skusToCreate: typeof skus.$inferInsert[] = [];
+      for (const approvedSku of approved_skus) {
+        // Use the CSV sku_id if it's a valid SKU-XXX format and not taken, else generate
+        let newId = approvedSku.sku_id;
+        if (existingIds.has(newId) || !newId.match(/^SKU-\d+$/)) {
+          newId = `SKU-${String(nextNum).padStart(3, "0")}`;
+          nextNum++;
+        }
+        csvSkuIdToDbId.set(approvedSku.sku_id, newId);
+        skusToCreate.push({
+          id: newId,
+          name: approvedSku.name,
+          category: approvedSku.category,
+          unitCostPaise: approvedSku.unit_cost_paise,
+          leadTimeDays: approvedSku.lead_time_days,
+          status: "no_history",
+        });
+        existingIds.add(newId);
+      }
+
+      if (skusToCreate.length > 0) {
+        await db.insert(skus).values(skusToCreate).onConflictDoNothing();
+      }
+    }
+
+    // Fetch existing SKUs (now includes any newly created ones)
     const existingSkus = await db.select({ id: skus.id }).from(skus);
     const validSkuIds = new Set(existingSkus.map((s) => s.id));
 
@@ -113,8 +159,9 @@ export async function POST(request: NextRequest) {
       const unitsVal = row[mapping.units_sold_col?.toLowerCase()];
       const priceVal = mapping.unit_price_col ? row[mapping.unit_price_col?.toLowerCase()] : null;
 
-      // Check SKU existence
-      if (!skuVal || !validSkuIds.has(skuVal)) {
+      // Check SKU existence — resolve CSV ID to DB ID if it was remapped
+      const resolvedSkuId = csvSkuIdToDbId.get(skuVal) ?? skuVal;
+      if (!resolvedSkuId || !validSkuIds.has(resolvedSkuId)) {
         if (skuVal) skippedSkus.add(skuVal);
         skipReasons.missing_skus++;
         skippedCount++;
@@ -130,7 +177,7 @@ export async function POST(request: NextRequest) {
       }
 
       const date = parseDate(dateVal);
-      const units = parseInt(unitsVal);
+      const units = Math.round(parseFloat(unitsVal)); // support decimal quantities (e.g. 8.78 kg → 9)
       const price = priceVal ? Math.round(parseFloat(priceVal) * 100) : null;
 
       if (!date || isNaN(units) || units < 0) {
@@ -141,7 +188,7 @@ export async function POST(request: NextRequest) {
 
       salesData.push({
         date,
-        skuId: skuVal,
+        skuId: resolvedSkuId,
         pinCode: pinVal,
         unitsSold: units,
         unitPricePaise: price,
@@ -168,8 +215,10 @@ export async function POST(request: NextRequest) {
       })
       .where(eq(uploadSessions.sessionId, session_id));
 
-    // Build detailed message
     let message = `Successfully imported ${importedCount.toLocaleString()} sales records.`;
+    if (approved_skus && approved_skus.length > 0) {
+      message += ` ${approved_skus.length} new SKU(s) were created.`;
+    }
     if (skippedCount > 0) {
       message += ` ${skippedCount.toLocaleString()} records were skipped.`;
     }
@@ -187,6 +236,7 @@ export async function POST(request: NextRequest) {
         imported_count: importedCount,
         skipped_count: skippedCount,
         pins_auto_created: pinsToCreate.length,
+        skus_created: approved_skus?.length ?? 0,
         reasons: skipReasons,
         missing_skus_list: Array.from(skippedSkus),
         missing_pins_list: Array.from(skippedPins),

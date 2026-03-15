@@ -140,7 +140,19 @@ Generate a forecast for the next ${period} with this EXACT JSON structure:
     "high_urgency_alerts": number,
     "avg_confidence": number,
     "top_growing_skus": [{ "sku_id": "string", "change": number }]
-  }
+  },
+  "immediate_actions": [
+    {
+      "title": "string (short imperative, e.g. 'Reorder Amul Milk at PIN 400001')",
+      "description": "string (what to do and why)",
+      "priority": "critical" | "high" | "medium" | "low",
+      "category": "restock" | "pricing" | "promotion" | "logistics" | "inventory_transfer" | "supplier" | "other",
+      "sku_ids": ["string"] (optional),
+      "pin_codes": ["string"] (optional),
+      "deadline": "string (optional, e.g. 'within 24 hours')",
+      "expected_outcome": "string (optional)"
+    }
+  ],
   "forecast_technique": "forecast or prediction technique you have used to generate the forecasts"
 }
 

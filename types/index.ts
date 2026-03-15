@@ -132,6 +132,33 @@ export interface ForecastPeriod {
   days: number;
 }
 
+export type ImmediateActionPriority = 'critical' | 'high' | 'medium' | 'low';
+export type ImmediateActionCategory =
+  | 'restock'
+  | 'pricing'
+  | 'promotion'
+  | 'logistics'
+  | 'inventory_transfer'
+  | 'supplier'
+  | 'other';
+
+export interface ImmediateAction {
+  /** Short imperative title, e.g. "Reorder Amul Milk at PIN 400001" */
+  title: string;
+  /** Detailed description of what to do and why */
+  description: string;
+  priority: ImmediateActionPriority;
+  category: ImmediateActionCategory;
+  /** SKU id(s) this action relates to, if applicable */
+  sku_ids?: string[];
+  /** PIN code(s) this action relates to, if applicable */
+  pin_codes?: string[];
+  /** Suggested deadline, e.g. "within 24 hours" or "before 2024-04-10" */
+  deadline?: string;
+  /** Expected outcome if action is taken */
+  expected_outcome?: string;
+}
+
 export interface ForecastData {
   generated_at: string;
   period: ForecastPeriod;
@@ -142,4 +169,6 @@ export interface ForecastData {
   festival_impact?: FestivalImpact;
   summary: ForecastSummary;
   forecast_technique: string;
+  /** Prioritised list of actions the store owner should take immediately */
+  immediate_actions?: ImmediateAction[];
 }

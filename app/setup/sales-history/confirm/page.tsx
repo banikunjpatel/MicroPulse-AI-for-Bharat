@@ -22,6 +22,7 @@ interface ImportResult {
   imported_count: number;
   skipped_count: number;
   pins_auto_created: number;
+  skus_created: number;
   reasons: {
     missing_skus: number;
     missing_pins: number;
@@ -73,10 +74,14 @@ export default function ConfirmPage() {
 
   const importMutation = useMutation({
     mutationFn: async (sessionId: string) => {
+      const sessionRaw = sessionStorage.getItem("upload_session");
+      const sessionInfo = sessionRaw ? JSON.parse(sessionRaw) : {};
+      const approvedSkus = sessionInfo.approved_skus ?? [];
+
       const res = await fetch("/api/sales-history/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId }),
+        body: JSON.stringify({ session_id: sessionId, approved_skus: approvedSkus }),
       });
       const json = await res.json();
       if (!json.success) throw new Error(json.error.message);
@@ -216,6 +221,12 @@ export default function ConfirmPage() {
                 <div>
                   <p className="text-muted-foreground">PINs Created</p>
                   <p className="text-xl font-semibold text-cyan-600">{importResult.pins_auto_created}</p>
+                </div>
+              )}
+              {importResult.skus_created > 0 && (
+                <div>
+                  <p className="text-muted-foreground">SKUs Created</p>
+                  <p className="text-xl font-semibold text-purple-600">{importResult.skus_created}</p>
                 </div>
               )}
               {importResult.missing_skus_list.length > 0 && (

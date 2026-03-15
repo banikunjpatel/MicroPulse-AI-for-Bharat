@@ -66,9 +66,7 @@ export async function POST(request: NextRequest) {
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(",").map((v) => v.trim());
       const row: Record<string, string> = {};
-      headers.forEach((h, idx) => {
-        row[h] = values[idx] || "";
-      });
+      headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
 
       const skuVal = row[mapping.sku_id_col?.toLowerCase()];
       const pinVal = row[mapping.pin_code_col?.toLowerCase()];
@@ -78,37 +76,40 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch existing SKUs and PINs from DB
-    const existingSkus = await db.select({ id: skus.id }).from(skus);
+    const existingSkus = await db.select({ id: skus.id, name: skus.name }).from(skus);
     const existingPins = await db.select({ pinCode: pinCodes.pinCode }).from(pinCodes);
 
     const existingSkuIds = new Set(existingSkus.map((s) => s.id));
     const existingPinCodes = new Set(existingPins.map((p) => p.pinCode));
 
     // Find missing SKUs and PINs
-    const missingSkus = Array.from(csvSkus).filter((sku) => !existingSkuIds.has(sku));
+    const missingSkuIds = Array.from(csvSkus).filter((sku) => !existingSkuIds.has(sku));
     const missingPins = Array.from(csvPins).filter((pin) => !existingPinCodes.has(pin));
     const validSkus = Array.from(csvSkus).filter((sku) => existingSkuIds.has(sku));
     const validPins = Array.from(csvPins).filter((pin) => existingPinCodes.has(pin));
 
-    // Validate data rows
+    // Build new SKU proposals for missing SKUs (user will approve these)
+    const newSkuProposals = missingSkuIds.map((skuId) => ({
+      sku_id: skuId,
+      name: skuId, // default name = the ID from CSV; user can see it
+      category: "other" as const,
+      unit_cost_paise: 100,
+      lead_time_days: 7,
+    }));
+
+    // Validate data rows (treat missing SKUs as if they exist — they may be approved)
     const errors: { row: number; column: string; value: string; issue: string }[] = [];
     let validRows = 0;
 
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(",").map((v) => v.trim());
       const row: Record<string, string> = {};
-      headers.forEach((h, idx) => {
-        row[h] = values[idx] || "";
-      });
+      headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
 
       const dateVal = row[mapping.date_col?.toLowerCase()];
       const skuVal = row[mapping.sku_id_col?.toLowerCase()];
       const pinVal = row[mapping.pin_code_col?.toLowerCase()];
       const unitsVal = row[mapping.units_sold_col?.toLowerCase()];
-
-      // Skip validation only if SKU is missing from DB
-      // Missing PINs will be auto-created during import, so don't skip them
-      if (skuVal && !existingSkuIds.has(skuVal)) continue;
 
       const parsedDate = parseDate(dateVal);
       if (!parsedDate) {
@@ -137,16 +138,16 @@ export async function POST(request: NextRequest) {
 
     const invalidRows = lines.length - 1 - validRows;
     const totalRows = lines.length - 1;
-    const hasMissingSkus = missingSkus.length > 0;
+    const hasMissingSkus = missingSkuIds.length > 0;
     const hasMissingPins = missingPins.length > 0;
-    // Only block if SKUs are missing; missing PINs will be auto-created during import
-    const canProceed = !hasMissingSkus && (invalidRows === 0 || invalidRows / totalRows < 0.01);
+    // Can proceed if data errors are acceptable (missing SKUs handled via approval flow)
+    const canProceed = invalidRows === 0 || invalidRows / totalRows < 0.01;
 
     await db
       .update(uploadSessions)
       .set({
         rowCount: totalRows,
-        status: invalidRows > 0 ? "validated" : "imported",
+        status: "validated",
       })
       .where(eq(uploadSessions.sessionId, session_id));
 
@@ -160,18 +161,14 @@ export async function POST(request: NextRequest) {
         errors: errors.slice(0, 10),
         can_proceed: canProceed,
         validation_summary: {
-          missing_skus: missingSkus,
+          missing_skus: missingSkuIds,
+          new_sku_proposals: newSkuProposals,
           missing_pins: missingPins,
           valid_skus: validSkus,
           valid_pins: validPins,
           has_missing_skus: hasMissingSkus,
           has_missing_pins: hasMissingPins,
         },
-        blocked_reason: hasMissingSkus 
-          ? `Missing SKUs in database: ${missingSkus.join(", ")}. Please create these SKUs first before importing sales data.`
-          : hasMissingPins 
-            ? `Warning: ${missingPins.length} PIN codes will be auto-created during import`
-            : null,
       },
     });
   } catch (error) {

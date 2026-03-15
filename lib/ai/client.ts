@@ -5,8 +5,44 @@ import {
   ConverseCommandInput,
 } from '@aws-sdk/client-bedrock-runtime';
 import { AwsCredentialIdentity, AwsCredentialIdentityProvider } from '@aws-sdk/types';
+import * as fs from 'fs';
+import * as path from 'path';
 import { getPrompt } from './prompts';
 import type { ChatOptions, ChatResponse } from './types';
+
+const LOG_DIR = path.join(process.cwd(), 'lib', 'ai', 'logs');
+
+function writeLLMLog(
+  provider: string,
+  model: string,
+  input: object,
+  output: object,
+  error?: unknown
+): void {
+  try {
+    if (!fs.existsSync(LOG_DIR)) {
+      fs.mkdirSync(LOG_DIR, { recursive: true });
+    }
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = path.join(LOG_DIR, `${timestamp}_${provider}.txt`);
+    const lines = [
+      `Timestamp : ${new Date().toISOString()}`,
+      `Provider  : ${provider}`,
+      `Model     : ${model}`,
+      '',
+      '=== INPUT ===',
+      JSON.stringify(input, null, 2),
+      '',
+      '=== OUTPUT ===',
+      error
+        ? `ERROR: ${error instanceof Error ? error.message : String(error)}`
+        : JSON.stringify(output, null, 2),
+    ];
+    fs.writeFileSync(filename, lines.join('\n'), 'utf-8');
+  } catch (e) {
+    console.error('[AI Client] Failed to write LLM log:', e);
+  }
+}
 
 type LLMProvider = 'openrouter' | 'bedrock' | 'mock';
 
@@ -113,10 +149,9 @@ class AIClient {
   async chat(options: ChatOptions): Promise<ChatResponse> {
     if (this.provider === 'mock') {
       console.log('[AI Client] Provider is mock, returning mock response');
-      return {
-        content: MOCK_RESPONSE,
-        usage: undefined,
-      };
+      const mockResult = { content: MOCK_RESPONSE, usage: undefined };
+      writeLLMLog('mock', 'mock', { messages: options.messages, systemPrompt: options.systemPrompt }, mockResult);
+      return mockResult;
     }
 
     if (this.provider === 'openrouter') {
@@ -166,7 +201,7 @@ class AIClient {
       console.log('[AI Client] Response received');
       console.log('[AI Client] Response content length:', content.length);
 
-      return {
+      const chatResponse: ChatResponse = {
         content,
         usage: response.usage
           ? {
@@ -176,8 +211,11 @@ class AIClient {
             }
           : undefined,
       };
+      writeLLMLog('openrouter', model, { messages }, chatResponse);
+      return chatResponse;
     } catch (error) {
       console.error('[AI Client] OpenRouter chat error:', error);
+      writeLLMLog('openrouter', model, { messages }, {}, error);
       throw error;
     }
   }
@@ -227,7 +265,7 @@ class AIClient {
       console.log('[AI Client] Response received');
       console.log('[AI Client] Response content length:', content.length);
 
-      return {
+      const chatResponse: ChatResponse = {
         content,
         usage: response.usage
           ? {
@@ -236,8 +274,11 @@ class AIClient {
             }
           : undefined,
       };
+      writeLLMLog('bedrock', model, { system: input.system, messages }, chatResponse);
+      return chatResponse;
     } catch (error) {
       console.error('[AI Client] Bedrock chat error:', error);
+      writeLLMLog('bedrock', model, { messages }, {}, error);
       throw error;
     }
   }

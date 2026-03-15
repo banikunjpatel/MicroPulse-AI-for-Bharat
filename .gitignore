@@ -45,3 +45,6 @@ __pycache__/
 *.pyc
 .DS_Store
 venv/
+
+# LLM request/response logs
+lib/ai/logs/
