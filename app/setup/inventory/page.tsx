@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { InventoryRecord, InventoryStatus, SKUCategory, SKU_CATEGORIES } from "@/types";
+import { InventoryRecord, InventoryStatus, SKUCategory, SKU_CATEGORIES, PINCode } from "@/types";
 import { PageHeader } from "@/components/setup/PageHeader";
 import { ActionRow } from "@/components/setup/ActionRow";
 import { EmptyState } from "@/components/setup/EmptyState";
@@ -36,6 +36,7 @@ export default function InventoryPage() {
   const [filters, setFilters] = useState({ pin_code: "all", category: "all" });
   const [edits, setEdits] = useState<Record<string, InventoryRecord>>({});
   const [isDirty, setIsDirty] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: inventoryData, isLoading } = useQuery({
     queryKey: ["inventory", filters.pin_code, filters.category],
@@ -51,6 +52,19 @@ export default function InventoryPage() {
     },
   });
 
+  const { data: pinCodesData } = useQuery({
+    queryKey: ["pinCodes"],
+    queryFn: async () => {
+      const res = await fetch("/api/pin-codes");
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error.message);
+      return (json.pin_codes ?? []) as PINCode[];
+    },
+    enabled: true,
+  });
+
+  const activePinCodes = (pinCodesData ?? []).filter(p => p.status === "active");
+
   const localInventory = (inventoryData?.records ?? []).map((r) => {
     const key = `${r.sku_id}:${r.pin_code}`;
     return edits[key] ?? {
@@ -63,6 +77,14 @@ export default function InventoryPage() {
       category: r.category as SKUCategory,
     };
   });
+
+  const filteredInventory = searchQuery
+    ? localInventory.filter(record =>
+        record.sku_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (record.sku_name?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+        record.pin_code.includes(searchQuery)
+      )
+    : localInventory;
 
   const updateMutation = useMutation({
     mutationFn: async (records: InventoryRecord[]) => {
@@ -151,15 +173,24 @@ export default function InventoryPage() {
           </Button>
         </div>
         <div className="flex items-center gap-4">
+          <Input
+            placeholder="Search inventory..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 w-48"
+          />
+          <p className="text-sm text-muted-foreground">{filteredInventory.length} of {localInventory.length} records</p>
           <select
             value={filters.pin_code}
             onChange={(e) => setFilters({ ...filters, pin_code: e.target.value })}
             className="rounded-md border border-input bg-background px-3 py-2 text-sm"
           >
             <option value="all">All PIN Codes</option>
-            <option value="395001">395001 — Surat</option>
-            <option value="395002">395002 — Varachha</option>
-            <option value="400001">400001 — Mumbai</option>
+            {activePinCodes.map((pc) => (
+              <option key={pc.pin_code} value={pc.pin_code}>
+                {pc.pin_code} — {pc.area_name}
+              </option>
+            ))}
           </select>
           <select
             value={filters.category}
@@ -176,7 +207,7 @@ export default function InventoryPage() {
         </div>
       </ActionRow>
 
-      {localInventory.length === 0 ? (
+      {localInventory.length === 0 && !isDirty ? (
         <EmptyState
           title="No inventory data"
           description="Import or add inventory records to start tracking stock levels"
@@ -200,7 +231,7 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {localInventory.map((record) => {
+                  {filteredInventory.map((record) => {
                     const status = getInventoryStatus(record);
                     const key = `${record.sku_id}:${record.pin_code}`;
                     const rowIsDirty = isDirtyRow(record.sku_id, record.pin_code);

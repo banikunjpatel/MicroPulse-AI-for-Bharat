@@ -5,6 +5,7 @@ import DashboardSidebar from "@/components/dashboard-sidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import {
   Select,
   SelectContent,
@@ -36,6 +37,14 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
   const [error, setError] = useState<string | null>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [forecastDays, setForecastDays] = useState<string>("30");
+  const [progressStage, setProgressStage] = useState(0);
+
+  const progressStages = [
+    "Preparing data...",
+    "Analyzing sales history...",
+    "Processing with AI...",
+    "Generating predictions...",
+  ];
 
   const fetchLatestForecast = async () => {
     try {
@@ -61,17 +70,32 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
     try {
       setGenerating(true);
       setError(null);
+      setProgressStage(0);
+      
+      // Animate through progress stages
+      const progressInterval = setInterval(() => {
+        setProgressStage(prev => {
+          if (prev < progressStages.length - 1) return prev + 1;
+          return prev;
+        });
+      }, 2000);
+
       const response = await fetch(`/api/forecasts?days=${forecastDays}`);
       const result = await response.json();
+
+      clearInterval(progressInterval);
 
       if (result.success) {
         setForecastData(result.data);
         setGeneratedAt(new Date().toISOString());
+        setProgressStage(0);
       } else {
         setError(result.error?.message || "Failed to generate forecast");
+        setProgressStage(0);
       }
     } catch (err) {
       setError("Failed to generate forecast");
+      setProgressStage(0);
     } finally {
       setGenerating(false);
     }
@@ -129,6 +153,7 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
 
       <main className="flex-1 overflow-auto">
         <div className="container mx-auto px-6 py-8">
+          <Breadcrumbs />
           <div className="mb-8">
             <div className="flex items-center justify-between">
               <div>
@@ -184,10 +209,33 @@ export default function ForecastsContent({ user }: ForecastsContentProps) {
           {(loading || generating) && (
             <div className="flex items-center justify-center py-20">
               <div className="text-center">
-                <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-cyan-600" />
-                <p className="text-muted-foreground">
-                  {generating ? "Generating new forecast..." : "Loading forecast..."}
-                </p>
+                <RefreshCw className={`w-8 h-8 mx-auto mb-4 text-cyan-600 ${generating ? "animate-spin" : ""}`} />
+                {generating ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <div className="flex gap-1">
+                        {progressStages.map((_, i) => (
+                          <div
+                            key={i}
+                            className={`h-2 w-2 rounded-full transition-colors ${
+                              i <= progressStage ? "bg-cyan-600" : "bg-slate-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-muted-foreground animate-pulse">
+                      {progressStages[progressStage]}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      This may take a minute...
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">
+                    Loading forecast...
+                  </p>
+                )}
               </div>
             </div>
           )}

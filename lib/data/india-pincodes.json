@@ -1,0 +1,793 @@
+{
+  "500016": {
+    "lat": 17.4672,
+    "lng": 78.4468,
+    "area": "Prakashamnagar S.O",
+    "district": "Hyderabad",
+    "state": "TELANGANA"
+  },
+  "560045": {
+    "lat": 13.0291,
+    "lng": 77.6206,
+    "area": "Arabic College S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560103": {
+    "lat": 12.9298,
+    "lng": 77.676,
+    "area": "Bellandur S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560071": {
+    "lat": 12.9611,
+    "lng": 77.6359,
+    "area": "Domlur S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560077": {
+    "lat": 13.0681,
+    "lng": 77.6293,
+    "area": "Dr. Shivarama Karanth Nagar S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560005": {
+    "lat": 13.0005,
+    "lng": 77.6164,
+    "area": "Fraser Town S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560065": {
+    "lat": 13.0781,
+    "lng": 77.5784,
+    "area": "G.K.V.K. S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560008": {
+    "lat": 12.9686,
+    "lng": 77.6427,
+    "area": "H.A.L II Stage H.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560001": {
+    "lat": 12.9773,
+    "lng": 77.5915,
+    "area": "HighCourt S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560075": {
+    "lat": 12.9695,
+    "lng": 77.6535,
+    "area": "Jeevanbhimanagar S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560037": {
+    "lat": 12.9559,
+    "lng": 77.688,
+    "area": "Marathahalli Colony S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560017": {
+    "lat": 12.9596,
+    "lng": 77.6502,
+    "area": "NAL S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560080": {
+    "lat": 13.0094,
+    "lng": 77.5772,
+    "area": "Sadashivanagar S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560092": {
+    "lat": 13.0621,
+    "lng": 77.588,
+    "area": "Sahakaranagar P.O S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560064": {
+    "lat": 13.0958,
+    "lng": 77.5975,
+    "area": "Yelahanka S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560050": {
+    "lat": 12.9377,
+    "lng": 77.5645,
+    "area": "Ashoknagar S.O (Bangalore)",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560070": {
+    "lat": 12.9265,
+    "lng": 77.5695,
+    "area": "B Sk II Stage S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560076": {
+    "lat": 12.8976,
+    "lng": 77.5997,
+    "area": "Bannerghatta Road S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560004": {
+    "lat": 12.9446,
+    "lng": 77.5741,
+    "area": "Basavanagudi H.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560068": {
+    "lat": 12.9068,
+    "lng": 77.6311,
+    "area": "Bommanahalli S.O (Bangalore)",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560099": {
+    "lat": 12.8203,
+    "lng": 77.6878,
+    "area": "Bommasandra Industrial Estate S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560035": {
+    "lat": 12.9078,
+    "lng": 77.6937,
+    "area": "Carmelram S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560081": {
+    "lat": 12.8016,
+    "lng": 77.7041,
+    "area": "Chandapura S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560029": {
+    "lat": 12.9352,
+    "lng": 77.5684,
+    "area": "Dharmaram College S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560100": {
+    "lat": 12.84,
+    "lng": 77.6626,
+    "area": "Electronics City S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560083": {
+    "lat": 12.8564,
+    "lng": 77.5883,
+    "area": "Gottigere S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560102": {
+    "lat": 12.9152,
+    "lng": 77.6382,
+    "area": "HSR Layout S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560078": {
+    "lat": 12.9119,
+    "lng": 77.5868,
+    "area": "J P Nagar S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560041": {
+    "lat": 12.9237,
+    "lng": 77.586,
+    "area": "Jayanagar H.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560011": {
+    "lat": 12.9304,
+    "lng": 77.5835,
+    "area": "Jayangar III Block S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560095": {
+    "lat": 12.9384,
+    "lng": 77.6186,
+    "area": "Koramangala VI Bk S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560034": {
+    "lat": 12.9277,
+    "lng": 77.6262,
+    "area": "St. John's Medical College S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560021": {
+    "lat": 13.001,
+    "lng": 77.5581,
+    "area": "Gayathrinagar S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560014": {
+    "lat": 13.0728,
+    "lng": 77.5463,
+    "area": "Jalahalli East S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560013": {
+    "lat": 13.0506,
+    "lng": 77.5539,
+    "area": "Jalahalli H.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560086": {
+    "lat": 13.0108,
+    "lng": 77.5466,
+    "area": "Mahalakshmipuram Layout S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560003": {
+    "lat": 13.0002,
+    "lng": 77.5709,
+    "area": "Malleswaram S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560055": {
+    "lat": 13.0089,
+    "lng": 77.5629,
+    "area": "Malleswaram West S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560054": {
+    "lat": 13.0403,
+    "lng": 77.5576,
+    "area": "Mathikere S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560010": {
+    "lat": 12.9932,
+    "lng": 77.5545,
+    "area": "Rajajinagar H.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560097": {
+    "lat": 13.076,
+    "lng": 77.5575,
+    "area": "Vidyaranyapura S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560022": {
+    "lat": 13.0197,
+    "lng": 77.5562,
+    "area": "Yeswanthpura S.O",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "562160": {
+    "lat": 12.6542,
+    "lng": 77.2027,
+    "area": "Channapatna H.O",
+    "district": "Ramanagar",
+    "state": "KARNATAKA"
+  },
+  "562159": {
+    "lat": 12.716,
+    "lng": 77.2729,
+    "area": "Ijoor Ramangaram S.O",
+    "district": "Ramanagar",
+    "state": "KARNATAKA"
+  },
+  "571430": {
+    "lat": 12.3857,
+    "lng": 77.0594,
+    "area": "Malavalli S.O",
+    "district": "Mandya",
+    "state": "KARNATAKA"
+  },
+  "571401": {
+    "lat": 12.5402,
+    "lng": 76.923,
+    "area": "Mandya H.O",
+    "district": "Mandya",
+    "state": "KARNATAKA"
+  },
+  "570028": {
+    "lat": 12.3021,
+    "lng": 76.7048,
+    "area": "Alanahalli S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570015": {
+    "lat": 12.3332,
+    "lng": 76.6538,
+    "area": "Bannimantap S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570018": {
+    "lat": 12.351,
+    "lng": 76.5605,
+    "area": "Belavadi S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571102": {
+    "lat": 12.48,
+    "lng": 76.0986,
+    "area": "Bettadapura S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571103": {
+    "lat": 12.3345,
+    "lng": 76.4543,
+    "area": "Bilikere S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570026": {
+    "lat": 12.3024,
+    "lng": 76.6013,
+    "area": "Bogadi S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570020": {
+    "lat": 12.3401,
+    "lng": 76.6358,
+    "area": "Brindavan Extension S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571104": {
+    "lat": 12.4292,
+    "lng": 75.9965,
+    "area": "Bylakuppe S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570004": {
+    "lat": 12.2891,
+    "lng": 76.6476,
+    "area": "Chamundi Extension S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571617": {
+    "lat": 12.4986,
+    "lng": 76.3008,
+    "area": "Chunchunakatte S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570025": {
+    "lat": 12.2858,
+    "lng": 76.6576,
+    "area": "G S Ashram S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571610": {
+    "lat": 12.3464,
+    "lng": 76.4357,
+    "area": "Gavadagere S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570002": {
+    "lat": 12.3293,
+    "lng": 76.6318,
+    "area": "Gokulam S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571125": {
+    "lat": 12.1288,
+    "lng": 76.4954,
+    "area": "Hampapura (H D Kote) S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571601": {
+    "lat": 12.4922,
+    "lng": 76.3963,
+    "area": "Hampapura (K R Nagar) S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571106": {
+    "lat": 12.2389,
+    "lng": 76.1884,
+    "area": "Hanagodu S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570016": {
+    "lat": 12.346,
+    "lng": 76.6164,
+    "area": "Hebbal Layout S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571114": {
+    "lat": 12.0944,
+    "lng": 76.3327,
+    "area": "Heggadedevana Kote S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571105": {
+    "lat": 12.3061,
+    "lng": 76.2917,
+    "area": "Hunsur S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570027": {
+    "lat": 12.3091,
+    "lng": 76.5969,
+    "area": "Infosys Campus S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570010": {
+    "lat": 12.3032,
+    "lng": 76.6569,
+    "area": "Ittigegud S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570012": {
+    "lat": 12.32,
+    "lng": 76.6238,
+    "area": "Jayalakshmipuram S.O (Mysore)",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570014": {
+    "lat": 12.2941,
+    "lng": 76.634,
+    "area": "Jayanagar S.O (Mysore)",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571116": {
+    "lat": 11.9772,
+    "lng": 76.3553,
+    "area": "Kabini Colony S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571311": {
+    "lat": 12.1936,
+    "lng": 76.6663,
+    "area": "Kadakola S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571187": {
+    "lat": 12.5615,
+    "lng": 75.9921,
+    "area": "Kanagal S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571134": {
+    "lat": 12.3179,
+    "lng": 76.3363,
+    "area": "Kattemalalavadi S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571602": {
+    "lat": 12.439,
+    "lng": 76.381,
+    "area": "Krishna Raja Nagar S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570001": {
+    "lat": 12.3088,
+    "lng": 76.6532,
+    "area": "Krishna Rajendra Circle S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570023": {
+    "lat": 12.2789,
+    "lng": 76.6231,
+    "area": "Kuvempunagar II Stage S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570006": {
+    "lat": 12.3111,
+    "lng": 76.618,
+    "area": "Manasagangothri S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571603": {
+    "lat": 12.5164,
+    "lng": 76.2998,
+    "area": "Mirle S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570005": {
+    "lat": 12.3025,
+    "lng": 76.6397,
+    "area": "Mysore Law Courts S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570008": {
+    "lat": 12.2832,
+    "lng": 76.6429,
+    "area": "Mysore South S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570007": {
+    "lat": 12.3302,
+    "lng": 76.6608,
+    "area": "Narasimha Raja Mohalla S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570003": {
+    "lat": 12.3508,
+    "lng": 76.6508,
+    "area": "Note Mudran Nagar S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571107": {
+    "lat": 12.3368,
+    "lng": 76.1,
+    "area": "Periyapatna S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570022": {
+    "lat": 12.2907,
+    "lng": 76.6197,
+    "area": "Ramakrishna Nagar S.O (Mysore)",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571189": {
+    "lat": 12.2382,
+    "lng": 76.3401,
+    "area": "Rathnapuri Colony S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571108": {
+    "lat": 12.4292,
+    "lng": 76.1919,
+    "area": "Ravandur S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571604": {
+    "lat": 12.5653,
+    "lng": 76.2569,
+    "area": "Saligrama S.O (Mysore)",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570009": {
+    "lat": 12.3036,
+    "lng": 76.6298,
+    "area": "Saraswathipuram H.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571121": {
+    "lat": 11.9998,
+    "lng": 76.3964,
+    "area": "Sargur S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570029": {
+    "lat": 12.3117,
+    "lng": 76.6987,
+    "area": "Shakthinagar S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570011": {
+    "lat": 12.3034,
+    "lng": 76.6766,
+    "area": "Siddarthanagar Nagar S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570019": {
+    "lat": 12.3243,
+    "lng": 76.6772,
+    "area": "Udayagiri S.O (Mysore)",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "570017": {
+    "lat": 12.3403,
+    "lng": 76.6131,
+    "area": "Vijaynagar II Stage S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571130": {
+    "lat": 12.3591,
+    "lng": 76.5421,
+    "area": "Yelwal S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571101": {
+    "lat": 12.3306,
+    "lng": 76.8611,
+    "area": "Bannur S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571110": {
+    "lat": 12.2396,
+    "lng": 76.8923,
+    "area": "Gargeshwari S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571111": {
+    "lat": 11.8097,
+    "lng": 76.688,
+    "area": "Gundlupet S.O",
+    "district": "Chamrajnagar",
+    "state": "KARNATAKA"
+  },
+  "571127": {
+    "lat": 11.8779,
+    "lng": 76.9548,
+    "area": "Haradanahalli S.O",
+    "district": "Chamrajnagar",
+    "state": "KARNATAKA"
+  },
+  "571314": {
+    "lat": 12.1428,
+    "lng": 76.5108,
+    "area": "Hullahalli S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571315": {
+    "lat": 12.0273,
+    "lng": 76.5454,
+    "area": "Hura S.O (Mysore)",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571117": {
+    "lat": 12.0719,
+    "lng": 76.8991,
+    "area": "Kagalavadi S.O",
+    "district": "Chamrajnagar",
+    "state": "KARNATAKA"
+  },
+  "571118": {
+    "lat": 12.0727,
+    "lng": 76.665,
+    "area": "Kalale S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571312": {
+    "lat": 12.0214,
+    "lng": 76.8094,
+    "area": "Kavalande S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571129": {
+    "lat": 12.1463,
+    "lng": 76.7664,
+    "area": "Nagarle S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571301": {
+    "lat": 12.1247,
+    "lng": 76.6797,
+    "area": "Nanjangud H.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571120": {
+    "lat": 12.2409,
+    "lng": 76.9111,
+    "area": "Old Sosale S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571124": {
+    "lat": 12.2151,
+    "lng": 76.8978,
+    "area": "T Narasipura S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571119": {
+    "lat": 12.0965,
+    "lng": 76.8089,
+    "area": "Tagadur S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571122": {
+    "lat": 12.1922,
+    "lng": 77.0259,
+    "area": "Talakad S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "571302": {
+    "lat": 12.1693,
+    "lng": 76.6754,
+    "area": "Thandavapura S.O",
+    "district": "Mysore",
+    "state": "KARNATAKA"
+  },
+  "621806": {
+    "lat": 17.4718,
+    "lng": 78.4475,
+    "area": "Variyankaval S.O",
+    "district": "Ariyalur",
+    "state": "TAMIL NADU"
+  },
+  "560038": {
+    "lat": 12.978,
+    "lng": 77.6408,
+    "area": "Indiranagar",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  },
+  "560066": {
+    "lat": 12.9698,
+    "lng": 77.7499,
+    "area": "Whitefield",
+    "district": "Bangalore",
+    "state": "KARNATAKA"
+  }
+}

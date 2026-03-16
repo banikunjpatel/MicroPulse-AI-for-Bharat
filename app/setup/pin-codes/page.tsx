@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2, Edit2, X, Check, Plus, Rocket, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toastError, toastSuccess } from "@/lib/toast";
 
 const validatePINCode = (data: Partial<PINCode>): string[] => {
   const errors: string[] = [];
@@ -75,9 +76,11 @@ export default function PINCodesPage() {
       setShowNewRow(false);
       setNewRowData({});
       setNewRowErrors([]);
+      toastSuccess("PIN code created", "New PIN code has been added successfully");
     },
     onError: (error: Error) => {
       setNewRowErrors([error.message]);
+      toastError("Failed to create PIN code", error.message);
     },
   });
 
@@ -97,9 +100,11 @@ export default function PINCodesPage() {
       setEditingPIN(null);
       setEditRowData({});
       setEditRowErrors([]);
+      toastSuccess("PIN code updated", "Changes have been saved successfully");
     },
     onError: (error: Error) => {
       setEditRowErrors([error.message]);
+      toastError("Failed to update PIN code", error.message);
     },
   });
 
@@ -112,9 +117,10 @@ export default function PINCodesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pin-codes"] });
       setDeleteConfirm(null);
+      toastSuccess("PIN code deleted", "The PIN code has been removed successfully");
     },
     onError: (error: Error) => {
-      alert(error.message);
+      toastError("Failed to delete PIN code", error.message);
       setDeleteConfirm(null);
     },
   });

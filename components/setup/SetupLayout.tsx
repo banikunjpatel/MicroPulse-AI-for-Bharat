@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 
 const SIDEBAR_ITEMS = [
   {
@@ -89,6 +90,7 @@ export default function SetupLayout({ children }: { children: React.ReactNode })
         </aside>
         <main className="flex-1 overflow-auto">
           <div className="container mx-auto px-6 py-8 max-w-7xl">
+            <Breadcrumbs />
             {children}
           </div>
         </main>

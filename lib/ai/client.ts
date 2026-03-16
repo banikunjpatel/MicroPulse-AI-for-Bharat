@@ -46,7 +46,7 @@ function writeLLMLog(
 
 type LLMProvider = 'openrouter' | 'bedrock' | 'mock';
 
-const DEFAULT_OPENROUTER_MODEL = 'arcee-ai/trinity-large-preview:free';
+const DEFAULT_OPENROUTER_MODEL = 'openrouter/hunter-alpha';
 const DEFAULT_BEDROCK_MODEL = 'us.amazon.nova-lite-v1:0';
 const MOCK_RESPONSE = 'This is a mock response. LLM provider is currently disabled.';
 

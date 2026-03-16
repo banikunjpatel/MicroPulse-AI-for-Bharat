@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2, Edit2, X, Check, Plus, Upload, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toastError, toastSuccess } from "@/lib/toast";
 
 const validateSKU = (data: Partial<SKU>): string[] => {
   const errors: string[] = [];
@@ -55,6 +56,7 @@ export default function SKUCatalogPage() {
   const [editRowErrors, setEditRowErrors] = useState<string[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: skusData, isLoading } = useQuery({
     queryKey: ["skus"],
@@ -89,6 +91,14 @@ export default function SKUCatalogPage() {
   });
 
   const skus = skusData?.skus ?? [];
+  
+  const filteredSkus = searchQuery
+    ? skus.filter(sku => 
+        sku.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sku.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sku.category.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : skus;
 
   const createMutation = useMutation({
     mutationFn: async (sku: Partial<SKU>) => {
@@ -106,9 +116,11 @@ export default function SKUCatalogPage() {
       setShowNewRow(false);
       setNewRowData({});
       setNewRowErrors([]);
+      toastSuccess("SKU created", "New SKU has been added successfully");
     },
     onError: (error: Error) => {
       setNewRowErrors([error.message]);
+      toastError("Failed to create SKU", error.message);
     },
   });
 
@@ -128,9 +140,11 @@ export default function SKUCatalogPage() {
       setEditingId(null);
       setEditRowData({});
       setEditRowErrors([]);
+      toastSuccess("SKU updated", "Changes have been saved successfully");
     },
     onError: (error: Error) => {
       setEditRowErrors([error.message]);
+      toastError("Failed to update SKU", error.message);
     },
   });
 
@@ -143,9 +157,10 @@ export default function SKUCatalogPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["skus"] });
       setDeleteConfirm(null);
+      toastSuccess("SKU deleted", "The SKU has been removed successfully");
     },
     onError: (error: Error) => {
-      alert(error.message);
+      toastError("Failed to delete SKU", error.message);
       setDeleteConfirm(null);
     },
   });
@@ -224,7 +239,15 @@ export default function SKUCatalogPage() {
             <Upload className="h-4 w-4" /> Import CSV
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">{skus.length} SKUs total</p>
+        <div className="flex items-center gap-4">
+          <Input
+            placeholder="Search SKUs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 w-64"
+          />
+          <p className="text-sm text-muted-foreground">{filteredSkus.length} of {skus.length} SKUs</p>
+        </div>
       </ActionRow>
 
       {skus.length === 0 && !showNewRow ? (
@@ -250,7 +273,7 @@ export default function SKUCatalogPage() {
                 </tr>
               </thead>
               <tbody>
-                {skus.map((sku) => (
+                {filteredSkus.map((sku) => (
                   <tr key={sku.id} className="border-b last:border-0">
                     {editingId === sku.id ? (
                       <>
